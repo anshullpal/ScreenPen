@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <meta
+        name="theme-color"
+        content="#111111"
+    >
+
+    <title>ScreenPen</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css?v=7"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         FULL-SCREEN DRAWING CANVAS
+    ====================================================== -->
+
+    <canvas
+        id="drawingCanvas"
+    ></canvas>
+
+
+    <!-- =====================================================
+         RIGHT-SIDE TOOL TRAY
+    ====================================================== -->
+
+    <div
+        id="toolTray"
+        class="collapsed"
+    >
+
+
+        <!-- =================================================
+             MENU BUTTON
+
+             CLOSED = ☰
+             OPEN   = ×
+        ================================================== -->
+
+        <button
+            id="trayToggle"
+            class="trayToggle"
+            title="Open Tools"
+            aria-label="Open Tools"
+        >
+            ☰
+        </button>
+
+
+        <!-- =================================================
+             TOOL PANEL
+        ================================================== -->
+
+        <div
+            id="toolPanel"
+            class="toolPanel"
+        >
+
+
+            <!-- =============================================
+                 CONNECTION STATUS
+            ============================================== -->
+
+            <div
+                id="connectionStatus"
+                class="connectionStatus"
+                title="Connection Status"
+            >
+                🟠
+                <span>
+                    Connecting
+                </span>
+            </div>
+
+
+            <!-- =============================================
+                 DRAWING TOOLS
+                 TWO-COLUMN GRID
+            ============================================== -->
+
+            <div
+                class="toolsGrid"
+            >
+
+
+                <!-- PEN -->
+
+                <button
+                    id="penBtn"
+                    class="toolButton active"
+                    title="Pen"
+                    aria-label="Pen"
+                >
+
+                    <span class="toolIcon">
+                        ✎
+                    </span>
+
+                    <span class="toolLabel">
+                        Pen
+                    </span>
+
+                </button>
+
+
+                <!-- HIGHLIGHTER -->
+
+                <button
+                    id="highlighterBtn"
+                    class="toolButton"
+                    title="Highlighter"
+                    aria-label="Highlighter"
+                >
+
+                    <span class="toolIcon">
+                        🖍
+                    </span>
+
+                    <span class="toolLabel">
+                        Highlight
+                    </span>
+
+                </button>
+
+
+                <!-- ERASER -->
+
+                <button
+                    id="eraserBtn"
+                    class="toolButton"
+                    title="Eraser"
+                    aria-label="Eraser"
+                >
+
+                    <span class="toolIcon">
+                        ⌫
+                    </span>
+
+                    <span class="toolLabel">
+                        Eraser
+                    </span>
+
+                </button>
+
+
+                <!-- ARROW -->
+
+                <button
+                    id="arrowBtn"
+                    class="toolButton"
+                    title="Arrow"
+                    aria-label="Arrow"
+                >
+
+                    <span class="toolIcon">
+                        ➜
+                    </span>
+
+                    <span class="toolLabel">
+                        Arrow
+                    </span>
+
+                </button>
+
+
+                <!-- RECTANGLE -->
+
+                <button
+                    id="rectangleBtn"
+                    class="toolButton"
+                    title="Rectangle"
+                    aria-label="Rectangle"
+                >
+
+                    <span class="toolIcon">
+                        □
+                    </span>
+
+                    <span class="toolLabel">
+                        Rectangle
+                    </span>
+
+                </button>
+
+
+                <!-- CIRCLE -->
+
+                <button
+                    id="circleBtn"
+                    class="toolButton"
+                    title="Circle"
+                    aria-label="Circle"
+                >
+
+                    <span class="toolIcon">
+                        ○
+                    </span>
+
+                    <span class="toolLabel">
+                        Circle
+                    </span>
+
+                </button>
+
+
+            </div>
+
+
+            <!-- =============================================
+                 SEPARATOR
+            ============================================== -->
+
+            <div
+                class="separator"
+            ></div>
+
+
+            <!-- =============================================
+                 COLOR
+            ============================================== -->
+
+            <div
+                class="controlSection"
+            >
+
+                <span class="controlTitle">
+                    Color
+                </span>
+
+
+                <label
+                    class="colorControl"
+                    title="Choose Color"
+                >
+
+                    <span
+                        id="colorPreview"
+                        class="colorPreview"
+                    ></span>
+
+
+                    <input
+                        type="color"
+                        id="colorPicker"
+                        value="#ff0000"
+                        aria-label="Choose drawing color"
+                    >
+
+                </label>
+
+            </div>
+
+
+            <!-- =============================================
+                 BRUSH SIZE
+                 HORIZONTAL SLIDER
+            ============================================== -->
+
+            <div
+                class="sizeSection"
+            >
+
+                <div
+                    class="sizeHeader"
+                >
+
+                    <span>
+                        Brush Size
+                    </span>
+
+                    <span
+                        id="sizeValue"
+                    >
+                        5
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="sizeRow"
+                >
+
+                    <span class="sizeSmall">
+                        ●
+                    </span>
+
+
+                    <input
+                        type="range"
+                        id="sizeSlider"
+                        min="1"
+                        max="50"
+                        value="5"
+                        aria-label="Brush size"
+                    />
+
+
+                    <span class="sizeLarge">
+                        ●
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 ACTIONS
+                 TWO-COLUMN GRID
+            ============================================== -->
+
+            <div
+                class="actionsGrid"
+            >
+
+
+                <!-- UNDO -->
+
+                <button
+                    id="undoBtn"
+                    class="actionButton"
+                    title="Undo"
+                    aria-label="Undo"
+                >
+
+                    <span class="actionIcon">
+                        ↶
+                    </span>
+
+                    <span class="actionLabel">
+                        Undo
+                    </span>
+
+                </button>
+
+
+                <!-- CLEAR -->
+
+                <button
+                    id="clearBtn"
+                    class="actionButton danger"
+                    title="Clear All"
+                    aria-label="Clear All"
+                >
+
+                    <span class="actionIcon">
+                        🗑
+                    </span>
+
+                    <span class="actionLabel">
+                        Clear
+                    </span>
+
+                </button>
+
+
+                <!-- SCREEN -->
+
+                <button
+                    id="screenBtn"
+                    class="actionButton"
+                    title="Desktop Screen"
+                    aria-label="Desktop Screen"
+                >
+
+                    <span class="actionIcon">
+                        🖥
+                    </span>
+
+                    <span class="actionLabel">
+                        Screen
+                    </span>
+
+                </button>
+
+
+                <!-- EXIT -->
+
+                <button
+                    id="exitBtn"
+                    class="actionButton danger"
+                    title="Exit ScreenPen"
+                    aria-label="Exit ScreenPen"
+                >
+
+                    <span class="actionIcon">
+                        ⏻
+                    </span>
+
+                    <span class="actionLabel">
+                        Exit
+                    </span>
+
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script
+        src="tablet.js?v=7"
+    ></script>
+
+
+</body>
+
+</html>

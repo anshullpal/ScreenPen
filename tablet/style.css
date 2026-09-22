@@ -1,0 +1,866 @@
+/* =========================================================
+   SCREENPEN TABLET
+   STEP 1 - TABLET UI
+========================================================= */
+
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+
+    box-sizing: border-box;
+
+}
+
+
+html,
+body {
+
+    margin: 0;
+
+    padding: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #ffffff;
+
+    touch-action: none;
+
+    user-select: none;
+
+    -webkit-user-select: none;
+
+    -webkit-touch-callout: none;
+
+}
+
+
+/* =========================================================
+   FULL-SCREEN DRAWING CANVAS
+========================================================= */
+
+#drawingCanvas {
+
+    position: fixed;
+
+    left: 0;
+
+    top: 0;
+
+    width: 100vw;
+
+    height: 100vh;
+
+    display: block;
+
+    background: #ffffff;
+
+    z-index: 1;
+
+    touch-action: none;
+
+}
+
+
+/* =========================================================
+   RIGHT TOOL TRAY
+========================================================= */
+
+#toolTray {
+
+    position: fixed;
+
+    right: 10px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    z-index: 1000;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    pointer-events: none;
+
+}
+
+
+/* =========================================================
+   MENU BUTTON
+========================================================= */
+
+.trayToggle {
+
+    width: 56px;
+
+    height: 56px;
+
+    padding: 0;
+
+    border: none;
+
+    border-radius: 16px;
+
+    background: rgba(
+        18,
+        18,
+        18,
+        0.96
+    );
+
+    color: #ffffff;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: 28px;
+
+    line-height: 1;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    pointer-events: auto;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 5px 20px
+        rgba(
+            0,
+            0,
+            0,
+            0.40
+        );
+
+    -webkit-tap-highlight-color:
+        transparent;
+
+}
+
+
+.trayToggle:active {
+
+    transform:
+        scale(0.92);
+
+}
+
+
+/* =========================================================
+   TOOL PANEL
+========================================================= */
+
+.toolPanel {
+
+    width: 172px;
+
+    margin-top: 7px;
+
+    padding: 9px;
+
+    background: rgba(
+        18,
+        18,
+        18,
+        0.96
+    );
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 8px 30px
+        rgba(
+            0,
+            0,
+            0,
+            0.45
+        );
+
+    backdrop-filter:
+        blur(12px);
+
+    -webkit-backdrop-filter:
+        blur(12px);
+
+    pointer-events: auto;
+
+}
+
+
+/* =========================================================
+   CLOSED
+========================================================= */
+
+#toolTray.collapsed .toolPanel {
+
+    display: none;
+
+}
+
+
+/* =========================================================
+   CONNECTION STATUS
+========================================================= */
+
+.connectionStatus {
+
+    width: 100%;
+
+    height: 27px;
+
+    margin-bottom: 7px;
+
+    padding: 0 8px;
+
+    border-radius: 9px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.08
+    );
+
+    color: #ffffff;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: 11px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 5px;
+
+}
+
+
+/* =========================================================
+   TWO-COLUMN TOOL GRID
+========================================================= */
+
+.toolsGrid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            1fr
+        );
+
+    gap: 6px;
+
+}
+
+
+/* =========================================================
+   TOOL BUTTON
+========================================================= */
+
+.toolButton {
+
+    height: 54px;
+
+    padding: 4px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.10
+    );
+
+    color: #ffffff;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 2px;
+
+    cursor: pointer;
+
+    -webkit-tap-highlight-color:
+        transparent;
+
+}
+
+
+.toolButton:active {
+
+    transform:
+        scale(0.94);
+
+}
+
+
+/* =========================================================
+   ACTIVE TOOL
+========================================================= */
+
+.toolButton.active {
+
+    background: #ffffff;
+
+    color: #111111;
+
+    box-shadow:
+        0 0 0 2px
+        rgba(
+            255,
+            255,
+            255,
+            0.30
+        );
+
+}
+
+
+/* =========================================================
+   TOOL ICON
+========================================================= */
+
+.toolIcon {
+
+    font-size: 23px;
+
+    line-height: 23px;
+
+}
+
+
+/* =========================================================
+   TOOL LABEL
+========================================================= */
+
+.toolLabel {
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: 9px;
+
+    font-weight: 500;
+
+    line-height: 10px;
+
+    white-space: nowrap;
+
+}
+
+
+/* =========================================================
+   SEPARATOR
+========================================================= */
+
+.separator {
+
+    width: 100%;
+
+    height: 1px;
+
+    margin: 8px 0;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.18
+    );
+
+}
+
+
+/* =========================================================
+   COLOR SECTION
+========================================================= */
+
+.controlSection {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 4px 5px;
+
+}
+
+
+.controlTitle {
+
+    color: #ffffff;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: 12px;
+
+}
+
+
+.colorControl {
+
+    width: 78px;
+
+    height: 34px;
+
+    border-radius: 9px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.10
+    );
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+}
+
+
+.colorPreview {
+
+    width: 50px;
+
+    height: 20px;
+
+    border-radius: 5px;
+
+    background: #ff0000;
+
+    border: 2px solid #ffffff;
+
+}
+
+
+.colorControl input {
+
+    position: absolute;
+
+    width: 1px;
+
+    height: 1px;
+
+    opacity: 0;
+
+}
+
+
+/* =========================================================
+   BRUSH SIZE
+========================================================= */
+
+.sizeSection {
+
+    width: 100%;
+
+    padding: 5px 4px;
+
+}
+
+
+.sizeHeader {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 5px;
+
+    color: #ffffff;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: 11px;
+
+}
+
+
+#sizeValue {
+
+    min-width: 20px;
+
+    text-align: right;
+
+    font-weight: bold;
+
+}
+
+
+/* =========================================================
+   HORIZONTAL SIZE SLIDER
+========================================================= */
+
+.sizeRow {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+}
+
+
+.sizeSmall,
+.sizeLarge {
+
+    color: #ffffff;
+
+    line-height: 1;
+
+}
+
+
+.sizeSmall {
+
+    font-size: 8px;
+
+}
+
+
+.sizeLarge {
+
+    font-size: 17px;
+
+}
+
+
+#sizeSlider {
+
+    flex: 1;
+
+    width: 100%;
+
+    height: 22px;
+
+    margin: 0;
+
+    accent-color: #ffffff;
+
+    cursor: pointer;
+
+}
+
+
+/* =========================================================
+   ACTION GRID
+========================================================= */
+
+.actionsGrid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            1fr
+        );
+
+    gap: 6px;
+
+}
+
+
+/* =========================================================
+   ACTION BUTTON
+========================================================= */
+
+.actionButton {
+
+    height: 50px;
+
+    padding: 3px;
+
+    border: none;
+
+    border-radius: 11px;
+
+    background: rgba(
+        255,
+        255,
+        255,
+        0.10
+    );
+
+    color: #ffffff;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 2px;
+
+    cursor: pointer;
+
+    -webkit-tap-highlight-color:
+        transparent;
+
+}
+
+
+.actionButton:active {
+
+    transform:
+        scale(0.94);
+
+}
+
+
+/* =========================================================
+   ACTION ICON
+========================================================= */
+
+.actionIcon {
+
+    font-size: 21px;
+
+    line-height: 21px;
+
+}
+
+
+/* =========================================================
+   ACTION LABEL
+========================================================= */
+
+.actionLabel {
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: 9px;
+
+    line-height: 10px;
+
+}
+
+
+/* =========================================================
+   DANGER
+========================================================= */
+
+.actionButton.danger {
+
+    background: rgba(
+        180,
+        40,
+        40,
+        0.45
+    );
+
+}
+
+
+/* =========================================================
+   PHONE
+========================================================= */
+
+@media (
+    max-width: 600px
+) {
+
+    #toolTray {
+
+        right: 7px;
+
+    }
+
+
+    .trayToggle {
+
+        width: 50px;
+
+        height: 50px;
+
+        font-size: 25px;
+
+        border-radius: 14px;
+
+    }
+
+
+    .toolPanel {
+
+        width: 160px;
+
+        padding: 8px;
+
+        border-radius: 16px;
+
+    }
+
+
+    .toolButton {
+
+        height: 48px;
+
+    }
+
+
+    .toolIcon {
+
+        font-size: 21px;
+
+        line-height: 21px;
+
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL SCREEN
+========================================================= */
+
+@media (
+    max-width: 380px
+) {
+
+    .toolPanel {
+
+        width: 150px;
+
+        padding: 7px;
+
+    }
+
+
+    .toolButton {
+
+        height: 45px;
+
+    }
+
+
+    .actionButton {
+
+        height: 44px;
+
+    }
+
+
+    .toolLabel,
+    .actionLabel {
+
+        font-size: 8px;
+
+    }
+
+}
+
+
+/* =========================================================
+   LANDSCAPE TABLET
+========================================================= */
+
+@media (
+    orientation: landscape
+) {
+
+    #toolTray {
+
+        right: 10px;
+
+    }
+
+}
+
+
+/* =========================================================
+   SMALL HEIGHT
+========================================================= */
+
+@media (
+    max-height: 600px
+) {
+
+    .toolPanel {
+
+        padding: 6px;
+
+    }
+
+
+    .toolButton {
+
+        height: 44px;
+
+    }
+
+
+    .actionButton {
+
+        height: 42px;
+
+    }
+
+
+    .connectionStatus {
+
+        height: 23px;
+
+        margin-bottom: 5px;
+
+    }
+
+
+    .separator {
+
+        margin: 5px 0;
+
+    }
+
+}
