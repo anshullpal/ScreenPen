@@ -4,8 +4,12 @@ import json
 import threading
 import queue
 import math
+import socket
+import re
 
+import ifaddr
 import websockets
+from zeroconf import ServiceInfo, Zeroconf
 
 from PySide6.QtCore import (
     Qt,
@@ -31,6 +35,187 @@ from PySide6.QtWidgets import (
 # =========================================================
 
 input_queue = queue.Queue()
+
+# =========================================================
+# MDNS SERVICE DISCOVERY
+# =========================================================
+
+SCREENPEN_PORT = 8765
+MDNS_SERVICE_TYPE = "_screenpen._tcp.local."
+
+mdns = None
+mdns_service = None
+
+
+def get_local_ipv4_addresses():
+    """
+    Find usable private IPv4 addresses on this computer.
+
+    Loopback, APIPA/link-local, and non-IPv4 addresses
+    are ignored.
+    """
+
+    addresses = []
+
+    for adapter in ifaddr.get_adapters():
+
+        for ip_info in adapter.ips:
+
+            ip = ip_info.ip
+
+            # We only want IPv4 addresses.
+            if not isinstance(ip, str):
+                continue
+
+            # Remove IPv6 zone suffix if present.
+            ip = ip.split("%")[0]
+
+            try:
+                address = socket.inet_aton(ip)
+            except OSError:
+                continue
+
+            # Ignore localhost.
+            if ip.startswith("127."):
+                continue
+
+            # Ignore APIPA/link-local addresses.
+            if ip.startswith("169.254."):
+                continue
+
+            if ip not in addresses:
+                addresses.append(ip)
+
+    return addresses
+
+
+def sanitize_hostname(hostname):
+    """
+    Convert the Windows hostname into a safe mDNS label.
+    """
+
+    hostname = hostname.strip()
+
+    hostname = re.sub(
+        r"[^A-Za-z0-9-]",
+        "-",
+        hostname
+    )
+
+    hostname = hostname.strip("-")
+
+    if not hostname:
+        hostname = "PC"
+
+    return hostname
+
+
+def start_mdns():
+    """
+    Advertise ScreenPen on the local network using mDNS.
+    """
+
+    global mdns
+    global mdns_service
+
+    addresses = get_local_ipv4_addresses()
+
+    if not addresses:
+        print("mDNS: No usable IPv4 address found.")
+        return
+
+    hostname = sanitize_hostname(
+        socket.gethostname()
+    )
+
+    service_name = (
+        f"ScreenPen-{hostname}."
+        f"{MDNS_SERVICE_TYPE}"
+    )
+
+    server_name = (
+        f"screenpen-{hostname}.local."
+    )
+
+    service_addresses = [
+        socket.inet_aton(ip)
+        for ip in addresses
+    ]
+
+    mdns_service = ServiceInfo(
+        MDNS_SERVICE_TYPE,
+        service_name,
+        addresses=service_addresses,
+        port=SCREENPEN_PORT,
+        properties={
+            "name": f"ScreenPen-{hostname}",
+            "version": "1.0",
+        },
+        server=server_name,
+    )
+
+    mdns = Zeroconf()
+
+    mdns.register_service(
+        mdns_service
+    )
+
+    print(
+        "mDNS discovery enabled"
+    )
+
+    print(
+        "Service:",
+        service_name
+    )
+
+    print(
+        "Port:",
+        SCREENPEN_PORT
+    )
+
+    print(
+        "Addresses:",
+        ", ".join(addresses)
+    )
+
+
+def stop_mdns():
+    """
+    Unregister the ScreenPen mDNS service.
+    """
+
+    global mdns
+    global mdns_service
+
+    if mdns is None:
+        return
+
+    try:
+
+        if mdns_service is not None:
+
+            mdns.unregister_service(
+                mdns_service
+            )
+
+        mdns.close()
+
+        print(
+            "mDNS discovery stopped"
+        )
+
+    except Exception as error:
+
+        print(
+            "mDNS shutdown error:",
+            error
+        )
+
+    finally:
+
+        mdns = None
+        mdns_service = None
 
 
 # =========================================================
@@ -1909,6 +2094,9 @@ server_thread = threading.Thread(
 
 server_thread.start()
 
+# Start local network discovery.
+start_mdns()
+
 window.show()
 
 print(
@@ -1941,6 +2129,10 @@ print(
     "========================================"
 )
 
+exit_code = app.exec()
+
+stop_mdns()
+
 sys.exit(
-    app.exec()
+    exit_code
 )
