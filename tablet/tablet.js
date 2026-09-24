@@ -20,8 +20,27 @@ let reconnectTimer = null;
 let manualClose = false;
 
 
-const WS_URL =
-    "ws://10.83.42.92:8765";
+/*
+=========================================================
+SCREENPEN CONNECTION
+=========================================================
+*/
+
+let screenPenIP = "10.83.42.92";
+
+let screenPenPort = 8765;
+
+
+function getWebSocketURL() {
+
+    return (
+        "ws://" +
+        screenPenIP +
+        ":" +
+        screenPenPort
+    );
+
+}
 
 
 function connectWebSocket() {
@@ -42,11 +61,16 @@ function connectWebSocket() {
     manualClose = false;
 
 
+    console.log(
+        "Connecting to ScreenPen:",
+        getWebSocketURL()
+    );
+
+
     ws =
         new WebSocket(
-            WS_URL
+            getWebSocketURL()
         );
-
 
     ws.onopen = () => {
 
@@ -456,7 +480,7 @@ function releasePointer(
     }
 
     catch (
-        error
+    error
     ) {
 
         console.warn(
@@ -985,7 +1009,7 @@ function drawStroke(
 
     ctx.globalAlpha =
         object.type ===
-        "highlighter"
+            "highlighter"
 
             ? 0.35
 
@@ -994,7 +1018,7 @@ function drawStroke(
 
     ctx.lineWidth =
         object.type ===
-        "highlighter"
+            "highlighter"
 
             ? object.size * 4
 
@@ -1480,7 +1504,7 @@ function objectHitTest(
 
         const width =
             object.type ===
-            "highlighter"
+                "highlighter"
 
                 ? (object.size || 5) * 4
 
@@ -1667,7 +1691,7 @@ function objectDragHitTest(
 
         const width =
             object.type ===
-            "highlighter"
+                "highlighter"
 
                 ? (object.size || 5) * 4
 
@@ -3591,7 +3615,7 @@ function objectHitByEraser(
 
         const width =
             object.type ===
-            "highlighter"
+                "highlighter"
 
                 ? object.size * 4
 
@@ -3783,14 +3807,14 @@ function distanceToSegment(
 
     )
 
-    /
+        /
 
-    (
+        (
 
-        dx * dx +
-        dy * dy
+            dx * dx +
+            dy * dy
 
-    );
+        );
 
 
     t =
