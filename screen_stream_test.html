@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>
+        ScreenPen Stream Test
+    </title>
+
+    <style>
+
+        body {
+            margin: 0;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            margin: 20px;
+        }
+
+        #status {
+            margin-bottom: 15px;
+        }
+
+        #screen {
+            width: min(1280px, 95vw);
+            height: auto;
+            border: 2px solid white;
+            background: black;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <h2>
+        ScreenPen Live Stream Test
+    </h2>
+
+    <div id="status">
+        🔴 Connecting...
+    </div>
+
+    <img
+        id="screen"
+        alt="Live desktop"
+    >
+
+    <script>
+
+        const status =
+            document.getElementById("status");
+
+        const screen =
+            document.getElementById("screen");
+
+
+        const ws =
+            new WebSocket(
+                "wss://localhost:8766"
+            );
+
+
+        ws.binaryType = "blob";
+
+
+        ws.onopen = () => {
+
+            status.textContent =
+                "🟢 Connected";
+
+        };
+
+
+        ws.onmessage = event => {
+
+            const url =
+                URL.createObjectURL(
+                    event.data
+                );
+
+            const oldUrl =
+                screen.dataset.objectUrl;
+
+            if (oldUrl) {
+
+                URL.revokeObjectURL(
+                    oldUrl
+                );
+
+            }
+
+            screen.src = url;
+
+            screen.dataset.objectUrl =
+                url;
+
+        };
+
+
+        ws.onerror = error => {
+
+            console.error(
+                "Stream error:",
+                error
+            );
+
+            status.textContent =
+                "🔴 Error";
+
+        };
+
+
+        ws.onclose = () => {
+
+            status.textContent =
+                "🔴 Disconnected";
+
+        };
+
+    </script>
+
+</body>
+
+</html>

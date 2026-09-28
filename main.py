@@ -1,15 +1,25 @@
 import sys
 import asyncio
 import json
+import io
 import threading
 import queue
 import math
 import socket
-import re
+import qrcode
+from urllib.parse import urlencode
+import ssl
+import ipaddress
+from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
-import ifaddr
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
 import websockets
-from zeroconf import ServiceInfo, Zeroconf
+from screen_stream import ScreenCapture
 
 from PySide6.QtCore import (
     Qt,
@@ -21,14 +31,17 @@ from PySide6.QtCore import (
 from PySide6.QtGui import (
     QPainter,
     QPen,
-    QColor
+    QColor,
+    QPixmap 
 )
 
 from PySide6.QtWidgets import (
     QApplication,
-    QWidget
+    QWidget,
+    QLabel,
+    QPushButton,
+    QVBoxLayout
 )
-
 
 # =========================================================
 # GLOBAL INPUT QUEUE
@@ -37,239 +50,295 @@ from PySide6.QtWidgets import (
 input_queue = queue.Queue()
 
 # =========================================================
-# MDNS SERVICE DISCOVERY
+# NETWORK
 # =========================================================
 
-SCREENPEN_PORT = 8765
-MDNS_SERVICE_TYPE = "_screenpen._tcp.local."
-
-mdns = None
-mdns_service = None
-
-
-def get_local_ipv4_addresses():
-    """
-    Find usable private IPv4 addresses on this computer.
-
-    Loopback, APIPA/link-local, and non-IPv4 addresses
-    are ignored.
-    """
-
-    addresses = []
-
-    for adapter in ifaddr.get_adapters():
-
-        for ip_info in adapter.ips:
-
-            ip = ip_info.ip
-
-            # We only want IPv4 addresses.
-            if not isinstance(ip, str):
-                continue
-
-            # Remove IPv6 zone suffix if present.
-            ip = ip.split("%")[0]
-
-            try:
-                address = socket.inet_aton(ip)
-            except OSError:
-                continue
-
-            # Ignore localhost.
-            if ip.startswith("127."):
-                continue
-
-            # Ignore APIPA/link-local addresses.
-            if ip.startswith("169.254."):
-                continue
-
-            if ip not in addresses:
-                addresses.append(ip)
-
-    return addresses
-
-
-def sanitize_hostname(hostname):
-    """
-    Convert the Windows hostname into a safe mDNS label.
-    """
-
-    hostname = hostname.strip()
-
-    hostname = re.sub(
-        r"[^A-Za-z0-9-]",
-        "-",
-        hostname
-    )
-
-    hostname = hostname.strip("-")
-
-    if not hostname:
-        hostname = "PC"
-
-    return hostname
-
-
-def start_mdns():
-    """
-    Advertise ScreenPen on the local network using mDNS.
-    """
-
-    global mdns
-    global mdns_service
-
-    addresses = get_local_ipv4_addresses()
-
-    if not addresses:
-        print("mDNS: No usable IPv4 address found.")
-        return
-
-    hostname = sanitize_hostname(
-        socket.gethostname()
-    )
-
-    service_name = (
-        f"ScreenPen-{hostname}."
-        f"{MDNS_SERVICE_TYPE}"
-    )
-
-    server_name = (
-        f"screenpen-{hostname}.local."
-    )
-
-    service_addresses = [
-        socket.inet_aton(ip)
-        for ip in addresses
-    ]
-
-    mdns_service = ServiceInfo(
-        MDNS_SERVICE_TYPE,
-        service_name,
-        addresses=service_addresses,
-        port=SCREENPEN_PORT,
-        properties={
-            "name": f"ScreenPen-{hostname}",
-            "version": "1.0",
-        },
-        server=server_name,
-    )
-
-    mdns = Zeroconf()
-
-    mdns.register_service(
-        mdns_service
-    )
-
-    print(
-        "mDNS discovery enabled"
-    )
-
-    print(
-        "Service:",
-        service_name
-    )
-
-    print(
-        "Port:",
-        SCREENPEN_PORT
-    )
-
-    print(
-        "Addresses:",
-        ", ".join(addresses)
-    )
-
-
-def stop_mdns():
-    """
-    Unregister the ScreenPen mDNS service.
-    """
-
-    global mdns
-    global mdns_service
-
-    if mdns is None:
-        return
-
+def get_local_ip():
     try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(("8.8.8.8", 80))
+        ip = sock.getsockname()[0]
+        sock.close()
+        return ip
+    except Exception:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.connect(("1.1.1.1", 80))
+            ip = sock.getsockname()[0]
+            sock.close()
+            return ip
+        except Exception:
+            return "127.0.0.1"
 
-        if mdns_service is not None:
+CERT_DIR = Path("certificates")
+CA_CERT_FILE = CERT_DIR / "screenpen_ca.crt"
+CA_KEY_FILE = CERT_DIR / "screenpen_ca.key"
+SERVER_CERT_FILE = CERT_DIR / "screenpen_server.crt"
+SERVER_KEY_FILE = CERT_DIR / "screenpen_server.key"
 
-            mdns.unregister_service(
-                mdns_service
+
+def create_private_key():
+    return rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048
+    )
+
+
+def save_private_key(key, path):
+    path.write_bytes(
+        key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+    )
+
+
+def load_private_key(path):
+    return serialization.load_pem_private_key(
+        path.read_bytes(),
+        password=None
+    )
+
+
+def create_certificate(ip):
+    CERT_DIR.mkdir(exist_ok=True)
+
+    if not CA_KEY_FILE.exists() or not CA_CERT_FILE.exists():
+        ca_key = create_private_key()
+
+        ca_subject = x509.Name([
+            x509.NameAttribute(
+                NameOID.COUNTRY_NAME,
+                "US"
+            ),
+            x509.NameAttribute(
+                NameOID.ORGANIZATION_NAME,
+                "ScreenPen"
+            ),
+            x509.NameAttribute(
+                NameOID.COMMON_NAME,
+                "ScreenPen Local CA"
             )
+        ])
 
-        mdns.close()
-
-        print(
-            "mDNS discovery stopped"
+        ca_cert = (
+            x509.CertificateBuilder()
+            .subject_name(ca_subject)
+            .issuer_name(ca_subject)
+            .public_key(ca_key.public_key())
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(
+                datetime.now(timezone.utc)
+            )
+            .not_valid_after(
+                datetime.now(timezone.utc)
+                + timedelta(days=3650)
+            )
+            .add_extension(
+                x509.BasicConstraints(
+                    ca=True,
+                    path_length=None
+                ),
+                critical=True
+            )
+            .sign(
+                ca_key,
+                hashes.SHA256()
+            )
         )
 
-    except Exception as error:
-
-        print(
-            "mDNS shutdown error:",
-            error
+        save_private_key(
+            ca_key,
+            CA_KEY_FILE
         )
 
-    finally:
+        CA_CERT_FILE.write_bytes(
+            ca_cert.public_bytes(
+                serialization.Encoding.PEM
+            )
+        )
 
-        mdns = None
-        mdns_service = None
+    ca_key = load_private_key(
+        CA_KEY_FILE
+    )
 
+    ca_cert = x509.load_pem_x509_certificate(
+        CA_CERT_FILE.read_bytes()
+    )
+
+    server_key = create_private_key()
+
+    server_subject = x509.Name([
+        x509.NameAttribute(
+            NameOID.ORGANIZATION_NAME,
+            "ScreenPen"
+        ),
+        x509.NameAttribute(
+            NameOID.COMMON_NAME,
+            ip
+        )
+    ])
+
+    server_cert = (
+        x509.CertificateBuilder()
+        .subject_name(server_subject)
+        .issuer_name(ca_cert.subject)
+        .public_key(server_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(
+            datetime.now(timezone.utc)
+            - timedelta(minutes=1)
+        )
+        .not_valid_after(
+            datetime.now(timezone.utc)
+            + timedelta(days=825)
+        )
+        .add_extension(
+            x509.SubjectAlternativeName([
+                x509.IPAddress(
+                    ipaddress.ip_address(ip)
+                )
+            ]),
+            critical=False
+        )
+        .add_extension(
+            x509.BasicConstraints(
+                ca=False,
+                path_length=None
+            ),
+            critical=True
+        )
+        .sign(
+            ca_key,
+            hashes.SHA256()
+        )
+    )
+
+    save_private_key(
+        server_key,
+        SERVER_KEY_FILE
+    )
+
+    SERVER_CERT_FILE.write_bytes(
+        server_cert.public_bytes(
+            serialization.Encoding.PEM
+        )
+    )
+
+    return (
+        SERVER_CERT_FILE,
+        SERVER_KEY_FILE
+    )
+
+def generate_connection_qr():
+    ip = get_local_ip()
+    if ip.startswith("127."):
+        print("No usable LAN IP detected.")
+        return None
+    connection_data = "screenpen://connect?" + urlencode({
+        "host": ip,
+        "control": 8765,
+        "screen": 8766
+    })
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=8,
+        border=4
+    )
+    qr.add_data(connection_data)
+    qr.make(fit=True)
+    return qr.make_image(fill_color="black", back_color="white")
 
 # =========================================================
 # WEBSOCKET SERVER
 # =========================================================
 
 async def websocket_handler(websocket):
-
     print("Tablet connected!")
-
     try:
-
         async for message in websocket:
-
             try:
-
                 data = json.loads(message)
-
                 input_queue.put(data)
-
             except json.JSONDecodeError:
-
                 print("Invalid JSON received")
-
     except websockets.exceptions.ConnectionClosed:
-
         print("Tablet disconnected")
-
     except Exception as error:
-
         print("WebSocket error:", error)
 
-
 async def websocket_server():
-
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_cert_chain(
+        certfile=SERVER_CERT_FILE,
+        keyfile=SERVER_KEY_FILE
+    )
     async with websockets.serve(
         websocket_handler,
         "0.0.0.0",
-        8765
+        8765,
+        ssl=ssl_context
     ):
+        print("Secure WebSocket server running on port 8765 (WSS)")
+        await asyncio.Future()
 
+def start_websocket_server():
+    asyncio.run(websocket_server())
+    
+# =========================================================
+# SCREEN STREAM SERVER
+# =========================================================
+
+async def screen_stream_handler(websocket):
+    print("Screen stream client connected!")
+
+    capture_engine = ScreenCapture()
+
+    try:
+        while True:
+            jpeg_data = capture_engine.capture_jpeg()
+
+            await websocket.send(jpeg_data)
+
+            await asyncio.sleep(0.1)
+
+    except websockets.exceptions.ConnectionClosed:
+        print("Screen stream client disconnected")
+
+    except Exception as error:
+        print("Screen stream error:", error)
+
+    finally:
+        capture_engine.close()
+
+
+async def screen_stream_server():
+    ssl_context = ssl.SSLContext(
+        ssl.PROTOCOL_TLS_SERVER
+    )
+    ssl_context.load_cert_chain(
+        certfile=SERVER_CERT_FILE,
+        keyfile=SERVER_KEY_FILE
+    )
+    async with websockets.serve(
+        screen_stream_handler,
+        "0.0.0.0",
+        8766,
+        ssl=ssl_context
+    ):
         print(
-            "WebSocket server running on port 8765"
+            "Secure screen stream server "
+            "running on port 8766 (WSS)"
         )
-
         await asyncio.Future()
 
 
-def start_websocket_server():
-
+def start_screen_stream_server():
     asyncio.run(
-        websocket_server()
+        screen_stream_server()
     )
-
 
 # =========================================================
 # SCREENPEN
@@ -278,7 +347,6 @@ def start_websocket_server():
 class ScreenPen(QWidget):
 
     def __init__(self):
-
         super().__init__()
 
         # -------------------------------------------------
@@ -469,8 +537,6 @@ class ScreenPen(QWidget):
                 )[1]
             )
 
-            # Tool change exits movement mode.
-
             self.moving = False
 
             self.moving_object_id = None
@@ -503,25 +569,18 @@ class ScreenPen(QWidget):
             return
 
         # -------------------------------------------------
-        # BRUSH SIZE
+        # SIZE
         # -------------------------------------------------
 
         if command == "size":
 
             try:
 
-                self.current_size = max(
-                    1,
-                    min(
-                        50,
-                        int(value)
-                    )
+                self.current_size = float(
+                    value
                 )
 
-            except (
-                TypeError,
-                ValueError
-            ):
+            except Exception:
 
                 pass
 
@@ -535,40 +594,13 @@ class ScreenPen(QWidget):
 
             try:
 
-                self.eraser_size = max(
-                    5,
-                    min(
-                        100,
-                        int(value)
-                    )
+                self.eraser_size = float(
+                    value
                 )
 
-            except (
-                TypeError,
-                ValueError
-            ):
+            except Exception:
 
                 pass
-
-            return
-
-        # -------------------------------------------------
-        # UNDO
-        # -------------------------------------------------
-
-        if command == "undo":
-
-            if self.objects:
-
-                removed = self.objects.pop()
-
-                print(
-                    "Undo:",
-                    removed.get("type"),
-                    removed.get("id")
-                )
-
-                self.update()
 
             return
 
@@ -590,24 +622,53 @@ class ScreenPen(QWidget):
 
             self.update()
 
-            print(
-                "Canvas cleared"
-            )
+            return
+
+        # -------------------------------------------------
+        # UNDO
+        # -------------------------------------------------
+
+        if command == "undo":
+
+            if self.objects:
+
+                self.objects.pop()
+
+                self.update()
 
             return
 
         # -------------------------------------------------
-        # MOVE OBJECT
+        # EXIT
+        # -------------------------------------------------
+
+        if command == "exit":
+
+            QApplication.quit()
+
+            return
+
+        # -------------------------------------------------
+        # OVERLAY
+        # -------------------------------------------------
+
+        if command == "overlay":
+
+            if value is not None:
+
+                self.overlay_enabled = bool(
+                    value
+                )
+
+                self.update()
+
+            return
+
+        # -------------------------------------------------
+        # MOVE
         # -------------------------------------------------
 
         if command == "move":
-
-            if not isinstance(
-                data,
-                dict
-            ):
-
-                return
 
             object_id = data.get(
                 "objectId"
@@ -623,90 +684,11 @@ class ScreenPen(QWidget):
                 0
             )
 
-            # ---------------------------------------------
-            # CONVERT NORMALIZED DELTA
-            # ---------------------------------------------
-
-            try:
-
-                dx = (
-                    float(dx_ratio)
-                    *
-                    self.width()
-                )
-
-                dy = (
-                    float(dy_ratio)
-                    *
-                    self.height()
-                )
-
-            except (
-                TypeError,
-                ValueError
-            ):
-
-                print(
-                    "Invalid MOVE values:",
-                    dx_ratio,
-                    dy_ratio
-                )
-
-                return
-
-            # ---------------------------------------------
-            # FIND OBJECT
-            # ---------------------------------------------
-
-            obj = self.find_object(
-                object_id
-            )
-
-            if obj is None:
-
-                print(
-                    "MOVE ERROR - object not found:",
-                    object_id
-                )
-
-                print(
-                    "Existing object IDs:",
-                    [
-                        obj.get("id")
-                        for obj in self.objects
-                    ]
-                )
-
-                return
-
-            # ---------------------------------------------
-            # DEBUG LOG
-            # ---------------------------------------------
-
-            print(
-                "MOVE:",
-                object_id,
-                "dx=",
-                dx,
-                "dy=",
-                dy,
-                "type=",
-                obj.get("type")
-            )
-
-            # ---------------------------------------------
-            # MOVE
-            # ---------------------------------------------
-
             self.move_object(
                 object_id,
-                dx,
-                dy
+                dx_ratio,
+                dy_ratio
             )
-
-            self.moving = True
-
-            self.moving_object_id = object_id
 
             return
 
@@ -716,111 +698,16 @@ class ScreenPen(QWidget):
 
         if command == "move_end":
 
-            print(
-                "MOVE END:",
-                self.moving_object_id
-            )
-
             self.moving = False
 
             self.moving_object_id = None
 
-            return
-
-        # -------------------------------------------------
-        # TOGGLE OVERLAY
-        # -------------------------------------------------
-
-        if command == "toggle_overlay":
-
-            if self.overlay_enabled:
-
-                self.overlay_enabled = False
-
-                self.hide()
-
-            else:
-
-                self.overlay_enabled = True
-
-                self.show()
-
-                self.raise_()
-
-            return
-
-        # -------------------------------------------------
-        # EXIT
-        # -------------------------------------------------
-
-        if command == "exit":
-
-            QApplication.quit()
+            self.update()
 
             return
 
     # =====================================================
-    # CONVERT TABLET POINT
-    # =====================================================
-
-    def convert_point(
-        self,
-        data
-    ):
-
-        x = data.get("x")
-
-        y = data.get("y")
-
-        width = data.get(
-            "canvasWidth"
-        )
-
-        height = data.get(
-            "canvasHeight"
-        )
-
-        if (
-            x is None
-            or
-            y is None
-            or
-            not width
-            or
-            not height
-        ):
-
-            return None
-
-        try:
-
-            screen_x = (
-                float(x)
-                /
-                float(width)
-            ) * self.width()
-
-            screen_y = (
-                float(y)
-                /
-                float(height)
-            ) * self.height()
-
-        except (
-            TypeError,
-            ValueError,
-            ZeroDivisionError
-        ):
-
-            return None
-
-        return QPoint(
-            int(screen_x),
-            int(screen_y)
-        )
-
-    # =====================================================
-    # POINTER HANDLER
+    # POINTER HANDLING
     # =====================================================
 
     def handle_pointer(
@@ -828,344 +715,207 @@ class ScreenPen(QWidget):
         data
     ):
 
-        point = self.convert_point(
-            data
+        action = data.get(
+            "action"
         )
 
-        if point is None:
+        x_ratio = data.get(
+            "x",
+            0
+        )
+
+        y_ratio = data.get(
+            "y",
+            0
+        )
+
+        try:
+
+            x = float(
+                x_ratio
+            ) * self.width()
+
+            y = float(
+                y_ratio
+            ) * self.height()
+
+        except Exception:
 
             return
 
-        event_type = data.get(
-            "event"
+        point = QPoint(
+            int(x),
+            int(y)
         )
 
-        # -------------------------------------------------
-        # POINTER DOWN
-        # -------------------------------------------------
+        if action == "down":
 
-        if event_type == "down":
+            self.pointer_down(
+                point,
+                data
+            )
+
+        elif action == "move":
+
+            self.pointer_move(
+                point,
+                data
+            )
+
+        elif action == "up":
+
+            self.pointer_up(
+                point,
+                data
+            )
+
+    # =====================================================
+    # POINTER DOWN
+    # =====================================================
+
+    def pointer_down(
+        self,
+        point,
+        data=None
+    ):
+
+        self.start_point = point
+
+        self.current_point = point
+
+        if self.current_tool in (
+            "pen",
+            "highlighter",
+            "eraser"
+        ):
 
             self.drawing = True
 
-            self.start_point = QPoint(
-                point
-            )
-
-            self.current_point = QPoint(
-                point
-            )
-
-            # ---------------------------------------------
-            # PEN / HIGHLIGHTER
-            # ---------------------------------------------
-
-            if self.current_tool in (
-                "pen",
-                "highlighter"
-            ):
-
-                self.current_stroke = {
-
-                    "type":
-                        self.current_tool,
-
-                    "id":
-                        self.next_object_id,
-
-                    "points":
-                        [
-                            QPoint(point)
-                        ],
-
-                    "color":
-                        QColor(
-                            self.current_color
-                        ),
-
-                    "size":
-                        self.current_size
-                }
-
-                self.next_object_id += 1
-
-                self.update()
-
-                return
-
-            # ---------------------------------------------
-            # ERASER
-            # ---------------------------------------------
-
-            if self.current_tool == "eraser":
-
-                self.erase_at(
+            self.current_stroke = {
+                "id": self.next_object_id,
+                "type": "stroke",
+                "tool": self.current_tool,
+                "color": self.current_color.name(),
+                "size": self.current_size,
+                "points": [
                     point
-                )
+                ]
+            }
 
-                self.update()
+            self.next_object_id += 1
 
-                return
-
-            # ---------------------------------------------
-            # SHAPES
-            # ---------------------------------------------
-
-            if self.current_tool in (
-                "arrow",
-                "rectangle",
-                "circle"
-            ):
-
-                self.update()
-
-                return
-
-        # -------------------------------------------------
-        # POINTER MOVE
-        # -------------------------------------------------
-
-        if event_type == "move":
-
-            if not self.drawing:
-
-                return
-
-            self.current_point = QPoint(
-                point
+            self.objects.append(
+                self.current_stroke
             )
-
-            # ---------------------------------------------
-            # PEN / HIGHLIGHTER
-            # ---------------------------------------------
-
-            if self.current_stroke:
-
-                self.current_stroke[
-                    "points"
-                ].append(
-                    QPoint(point)
-                )
-
-                self.update()
-
-                return
-
-            # ---------------------------------------------
-            # ERASER
-            # ---------------------------------------------
-
-            if self.current_tool == "eraser":
-
-                self.erase_at(
-                    point
-                )
-
-                self.update()
-
-                return
-
-            # ---------------------------------------------
-            # SHAPES
-            # ---------------------------------------------
 
             self.update()
 
             return
 
-        # -------------------------------------------------
-        # POINTER UP
-        # -------------------------------------------------
+        if self.current_tool in (
+            "arrow",
+            "rectangle",
+            "circle"
+        ):
 
-        if event_type == "up":
+            self.drawing = True
 
-            if not self.drawing:
+            self.current_stroke = {
+                "id": self.next_object_id,
+                "type": self.current_tool,
+                "color": self.current_color.name(),
+                "size": self.current_size,
+                "start": point,
+                "end": point
+            }
 
-                return
+            self.next_object_id += 1
 
-            self.current_point = QPoint(
+            self.objects.append(
+                self.current_stroke
+            )
+
+            self.update()
+
+            return
+
+    # =====================================================
+    # POINTER MOVE
+    # =====================================================
+
+    def pointer_move(
+        self,
+        point,
+        data=None
+    ):
+
+        if not self.drawing:
+
+            return
+
+        self.current_point = point
+
+        if not self.current_stroke:
+
+            return
+
+        if self.current_stroke.get(
+            "type"
+        ) == "stroke":
+
+            self.current_stroke[
+                "points"
+            ].append(
                 point
             )
 
-            # ---------------------------------------------
-            # PEN / HIGHLIGHTER
-            # ---------------------------------------------
+        else:
 
-            if self.current_stroke:
+            self.current_stroke[
+                "end"
+            ] = point
+
+        self.update()
+
+    # =====================================================
+    # POINTER UP
+    # =====================================================
+
+    def pointer_up(
+        self,
+        point,
+        data=None
+    ):
+
+        if not self.drawing:
+
+            return
+
+        self.current_point = point
+
+        if self.current_stroke:
+
+            if self.current_stroke.get(
+                "type"
+            ) == "stroke":
 
                 self.current_stroke[
                     "points"
                 ].append(
-                    QPoint(point)
-                )
-
-                self.objects.append(
-                    self.current_stroke
-                )
-
-                print(
-                    "Created:",
-                    self.current_stroke.get("type"),
-                    self.current_stroke.get("id")
-                )
-
-                self.current_stroke = None
-
-            # ---------------------------------------------
-            # ARROW
-            # ---------------------------------------------
-
-            elif self.current_tool == "arrow":
-
-                object_id = (
-                    self.next_object_id
-                )
-
-                self.objects.append({
-
-                    "type":
-                        "arrow",
-
-                    "id":
-                        object_id,
-
-                    "start":
-                        QPoint(
-                            self.start_point
-                        ),
-
-                    "end":
-                        QPoint(point),
-
-                    "color":
-                        QColor(
-                            self.current_color
-                        ),
-
-                    "size":
-                        self.current_size
-                })
-
-                self.next_object_id += 1
-
-                print(
-                    "Created:",
-                    "arrow",
-                    object_id
-                )
-
-            # ---------------------------------------------
-            # RECTANGLE
-            # ---------------------------------------------
-
-            elif self.current_tool == "rectangle":
-
-                object_id = (
-                    self.next_object_id
-                )
-
-                self.objects.append({
-
-                    "type":
-                        "rectangle",
-
-                    "id":
-                        object_id,
-
-                    "rect":
-                        QRect(
-                            self.start_point,
-                            point
-                        ).normalized(),
-
-                    "color":
-                        QColor(
-                            self.current_color
-                        ),
-
-                    "size":
-                        self.current_size
-                })
-
-                self.next_object_id += 1
-
-                print(
-                    "Created:",
-                    "rectangle",
-                    object_id
-                )
-
-            # ---------------------------------------------
-            # CIRCLE
-            # ---------------------------------------------
-
-            elif self.current_tool == "circle":
-
-                object_id = (
-                    self.next_object_id
-                )
-
-                self.objects.append({
-
-                    "type":
-                        "circle",
-
-                    "id":
-                        object_id,
-
-                    "rect":
-                        QRect(
-                            self.start_point,
-                            point
-                        ).normalized(),
-
-                    "color":
-                        QColor(
-                            self.current_color
-                        ),
-
-                    "size":
-                        self.current_size
-                })
-
-                self.next_object_id += 1
-
-                print(
-                    "Created:",
-                    "circle",
-                    object_id
-                )
-
-            # ---------------------------------------------
-            # ERASER
-            # ---------------------------------------------
-
-            elif self.current_tool == "eraser":
-
-                self.erase_at(
                     point
                 )
 
-            self.drawing = False
+            else:
 
-            self.update()
+                self.current_stroke[
+                    "end"
+                ] = point
 
-    # =====================================================
-    # FIND OBJECT
-    # =====================================================
+        self.drawing = False
 
-    def find_object(
-        self,
-        object_id
-    ):
+        self.current_stroke = None
 
-        for obj in self.objects:
-
-            if obj.get("id") == object_id:
-
-                return obj
-
-        return None
+        self.update()
 
     # =====================================================
     # MOVE OBJECT
@@ -1174,603 +924,93 @@ class ScreenPen(QWidget):
     def move_object(
         self,
         object_id,
-        dx,
-        dy
+        dx_ratio,
+        dy_ratio
     ):
 
-        obj = self.find_object(
-            object_id
-        )
+        if object_id is None:
 
-        if obj is None:
-
-            return False
+            return
 
         try:
 
-            dx = float(dx)
-
-            dy = float(dy)
-
-        except (
-            TypeError,
-            ValueError
-        ):
-
-            return False
-
-        obj_type = obj.get(
-            "type"
-        )
-
-        # -------------------------------------------------
-        # PEN / HIGHLIGHTER
-        # -------------------------------------------------
-
-        if obj_type in (
-            "pen",
-            "highlighter"
-        ):
-
-            for point in obj.get(
-                "points",
-                []
-            ):
-
-                point.setX(
-                    point.x()
-                    +
-                    int(round(dx))
-                )
-
-                point.setY(
-                    point.y()
-                    +
-                    int(round(dy))
-                )
-
-        # -------------------------------------------------
-        # ARROW
-        # -------------------------------------------------
-
-        elif obj_type == "arrow":
-
-            obj["start"].setX(
-                obj["start"].x()
-                +
-                int(round(dx))
+            dx = (
+                float(dx_ratio)
+                *
+                self.width()
             )
 
-            obj["start"].setY(
-                obj["start"].y()
-                +
-                int(round(dy))
+            dy = (
+                float(dy_ratio)
+                *
+                self.height()
             )
 
-            obj["end"].setX(
-                obj["end"].x()
-                +
-                int(round(dx))
-            )
+        except Exception:
 
-            obj["end"].setY(
-                obj["end"].y()
-                +
-                int(round(dy))
-            )
+            return
 
-        # -------------------------------------------------
-        # RECTANGLE / CIRCLE
-        # -------------------------------------------------
-
-        elif obj_type in (
-            "rectangle",
-            "circle"
-        ):
-
-            obj["rect"].translate(
-                int(round(dx)),
-                int(round(dy))
-            )
-
-        else:
-
-            return False
-
-        self.update()
-
-        return True
-
-    # =====================================================
-    # ERASER
-    # =====================================================
-
-    def erase_at(
-        self,
-        point
-    ):
-
-        radius = max(
-            5,
-            self.eraser_size
-        )
-
-        remaining = []
+        target = None
 
         for obj in self.objects:
 
-            if self.object_hit_by_eraser(
-                obj,
-                point,
-                radius
+            if (
+                obj.get("id")
+                ==
+                object_id
             ):
 
-                print(
-                    "Erased:",
-                    obj.get("type"),
-                    obj.get("id")
-                )
+                target = obj
 
-                continue
+                break
 
-            remaining.append(
-                obj
-            )
+        if target is None:
 
-        self.objects = remaining
+            return
 
-    # =====================================================
-    # OBJECT HIT TEST
-    # =====================================================
-
-    def object_hit_by_eraser(
-        self,
-        obj,
-        point,
-        radius
-    ):
-
-        obj_type = obj.get(
+        if target.get(
             "type"
-        )
+        ) == "stroke":
 
-        # -------------------------------------------------
-        # PEN / HIGHLIGHTER
-        # -------------------------------------------------
-
-        if obj_type in (
-            "pen",
-            "highlighter"
-        ):
-
-            points = obj.get(
+            points = target.get(
                 "points",
                 []
             )
 
-            stroke_size = obj.get(
-                "size",
-                5
-            )
-
-            if obj_type == "highlighter":
-
-                stroke_size *= 4
-
-            if len(points) == 1:
-
-                return (
-                    math.hypot(
-                        point.x()
-                        -
-                        points[0].x(),
-
-                        point.y()
-                        -
-                        points[0].y()
-                    )
-                    <=
-                    radius +
-                    stroke_size / 2
-                )
-
-            for i in range(
-                1,
-                len(points)
+            for index, point in enumerate(
+                points
             ):
 
-                if (
-                    self.distance_to_segment(
-                        point,
-                        points[i - 1],
-                        points[i]
-                    )
-                    <=
-                    radius +
-                    stroke_size / 2
-                ):
-
-                    return True
-
-            return False
-
-        # -------------------------------------------------
-        # ARROW
-        # -------------------------------------------------
-
-        if obj_type == "arrow":
-
-            start = obj["start"]
-
-            end = obj["end"]
-
-            size = obj.get(
-                "size",
-                5
-            )
-
-            if (
-                self.distance_to_segment(
-                    point,
-                    start,
-                    end
+                points[index] = QPoint(
+                    int(point.x() + dx),
+                    int(point.y() + dy)
                 )
-                <=
-                radius +
-                size / 2
-            ):
 
-                return True
+        else:
 
-            p1, p2 = (
-                self.get_arrow_head_points(
-                    start,
-                    end,
-                    size
+            start = target.get(
+                "start"
+            )
+
+            end = target.get(
+                "end"
+            )
+
+            if start is not None:
+
+                target["start"] = QPoint(
+                    int(start.x() + dx),
+                    int(start.y() + dy)
                 )
-            )
 
-            return (
-                self.distance_to_segment(
-                    point,
-                    end,
-                    p1
+            if end is not None:
+
+                target["end"] = QPoint(
+                    int(end.x() + dx),
+                    int(end.y() + dy)
                 )
-                <= radius
 
-                or
-
-                self.distance_to_segment(
-                    point,
-                    end,
-                    p2
-                )
-                <= radius
-            )
-
-        # -------------------------------------------------
-        # RECTANGLE
-        # -------------------------------------------------
-
-        if obj_type == "rectangle":
-
-            return self.point_near_rectangle(
-                point,
-                obj["rect"],
-                radius
-            )
-
-        # -------------------------------------------------
-        # CIRCLE
-        # -------------------------------------------------
-
-        if obj_type == "circle":
-
-            return self.point_near_circle(
-                point,
-                obj["rect"],
-                radius
-            )
-
-        return False
-
-    # =====================================================
-    # RECTANGLE HIT
-    # =====================================================
-
-    def point_near_rectangle(
-        self,
-        point,
-        rect,
-        radius
-    ):
-
-        left = rect.left()
-
-        right = rect.right()
-
-        top = rect.top()
-
-        bottom = rect.bottom()
-
-        segments = [
-
-            (
-                QPoint(left, top),
-                QPoint(right, top)
-            ),
-
-            (
-                QPoint(right, top),
-                QPoint(right, bottom)
-            ),
-
-            (
-                QPoint(right, bottom),
-                QPoint(left, bottom)
-            ),
-
-            (
-                QPoint(left, bottom),
-                QPoint(left, top)
-            )
-        ]
-
-        for start, end in segments:
-
-            if (
-                self.distance_to_segment(
-                    point,
-                    start,
-                    end
-                )
-                <= radius
-            ):
-
-                return True
-
-        return False
-
-    # =====================================================
-    # CIRCLE HIT
-    # =====================================================
-
-    def point_near_circle(
-        self,
-        point,
-        rect,
-        radius
-    ):
-
-        center_x = (
-            rect.left()
-            +
-            rect.width() / 2
-        )
-
-        center_y = (
-            rect.top()
-            +
-            rect.height() / 2
-        )
-
-        rx = (
-            abs(rect.width())
-            /
-            2
-        )
-
-        ry = (
-            abs(rect.height())
-            /
-            2
-        )
-
-        if rx == 0 or ry == 0:
-
-            return False
-
-        dx = (
-            point.x()
-            -
-            center_x
-        )
-
-        dy = (
-            point.y()
-            -
-            center_y
-        )
-
-        normalized = math.sqrt(
-
-            (
-                dx * dx
-                /
-                (rx * rx)
-            )
-
-            +
-
-            (
-                dy * dy
-                /
-                (ry * ry)
-            )
-        )
-
-        distance_from_edge = (
-
-            abs(
-                normalized - 1
-            )
-
-            *
-
-            min(
-                rx,
-                ry
-            )
-        )
-
-        return (
-            distance_from_edge
-            <=
-            radius
-        )
-
-    # =====================================================
-    # DISTANCE TO SEGMENT
-    # =====================================================
-
-    def distance_to_segment(
-        self,
-        point,
-        start,
-        end
-    ):
-
-        px = point.x()
-
-        py = point.y()
-
-        x1 = start.x()
-
-        y1 = start.y()
-
-        x2 = end.x()
-
-        y2 = end.y()
-
-        dx = x2 - x1
-
-        dy = y2 - y1
-
-        if (
-            dx == 0
-            and
-            dy == 0
-        ):
-
-            return math.hypot(
-                px - x1,
-                py - y1
-            )
-
-        t = (
-
-            (
-                (px - x1) * dx
-                +
-                (py - y1) * dy
-            )
-
-            /
-
-            (
-                dx * dx
-                +
-                dy * dy
-            )
-        )
-
-        t = max(
-            0,
-            min(
-                1,
-                t
-            )
-        )
-
-        nearest_x = (
-            x1 +
-            t * dx
-        )
-
-        nearest_y = (
-            y1 +
-            t * dy
-        )
-
-        return math.hypot(
-            px - nearest_x,
-            py - nearest_y
-        )
-
-    # =====================================================
-    # ARROW HEAD
-    # =====================================================
-
-    def get_arrow_head_points(
-        self,
-        start,
-        end,
-        size
-    ):
-
-        angle = math.atan2(
-
-            end.y()
-            -
-            start.y(),
-
-            end.x()
-            -
-            start.x()
-        )
-
-        length = (
-            12 +
-            size
-        )
-
-        angle1 = (
-            angle
-            +
-            math.pi * 0.8
-        )
-
-        angle2 = (
-            angle
-            -
-            math.pi * 0.8
-        )
-
-        p1 = QPoint(
-
-            int(
-                end.x()
-                +
-                length *
-                math.cos(angle1)
-            ),
-
-            int(
-                end.y()
-                +
-                length *
-                math.sin(angle1)
-            )
-        )
-
-        p2 = QPoint(
-
-            int(
-                end.x()
-                +
-                length *
-                math.cos(angle2)
-            ),
-
-            int(
-                end.y()
-                +
-                length *
-                math.sin(angle2)
-            )
-        )
-
-        return p1, p2
+        self.update()
 
     # =====================================================
     # PAINT EVENT
@@ -1781,6 +1021,10 @@ class ScreenPen(QWidget):
         event
     ):
 
+        if not self.overlay_enabled:
+
+            return
+
         painter = QPainter(
             self
         )
@@ -1789,10 +1033,6 @@ class ScreenPen(QWidget):
             QPainter.Antialiasing
         )
 
-        # -------------------------------------------------
-        # STORED OBJECTS
-        # -------------------------------------------------
-
         for obj in self.objects:
 
             self.draw_object(
@@ -1800,36 +1040,17 @@ class ScreenPen(QWidget):
                 obj
             )
 
-        # -------------------------------------------------
-        # CURRENT STROKE
-        # -------------------------------------------------
-
-        if self.current_stroke:
-
-            self.draw_object(
-                painter,
-                self.current_stroke
-            )
-
-        # -------------------------------------------------
-        # SHAPE PREVIEW
-        # -------------------------------------------------
-
         if (
             self.drawing
             and
-            self.current_tool in (
-                "arrow",
-                "rectangle",
-                "circle"
-            )
+            self.current_stroke
         ):
 
-            self.draw_shape_preview(
-                painter
+            self.draw_object(
+                painter,
+                self.current_stroke,
+                preview=True
             )
-
-        painter.end()
 
     # =====================================================
     # DRAW OBJECT
@@ -1838,21 +1059,61 @@ class ScreenPen(QWidget):
     def draw_object(
         self,
         painter,
-        obj
+        obj,
+        preview=False
     ):
 
-        obj_type = obj.get(
+        object_type = obj.get(
             "type"
         )
 
-        # -------------------------------------------------
-        # PEN / HIGHLIGHTER
-        # -------------------------------------------------
+        color = QColor(
+            obj.get(
+                "color",
+                "#ff0000"
+            )
+        )
 
-        if obj_type in (
-            "pen",
-            "highlighter"
-        ):
+        size = float(
+            obj.get(
+                "size",
+                5
+            )
+        )
+
+        tool = obj.get(
+            "tool",
+            ""
+        )
+
+        if tool == "highlighter":
+
+            color.setAlpha(
+                100
+            )
+
+        elif tool == "eraser":
+
+            color = QColor(
+                0,
+                0,
+                0,
+                0
+            )
+
+        pen = QPen(
+            color,
+            size,
+            Qt.SolidLine,
+            Qt.RoundCap,
+            Qt.RoundJoin
+        )
+
+        painter.setPen(
+            pen
+        )
+
+        if object_type == "stroke":
 
             points = obj.get(
                 "points",
@@ -1861,37 +1122,13 @@ class ScreenPen(QWidget):
 
             if len(points) < 2:
 
+                if points:
+
+                    painter.drawPoint(
+                        points[0]
+                    )
+
                 return
-
-            color = QColor(
-                obj.get(
-                    "color",
-                    self.current_color
-                )
-            )
-
-            size = obj.get(
-                "size",
-                self.current_size
-            )
-
-            if obj_type == "highlighter":
-
-                color.setAlpha(100)
-
-                size *= 4
-
-            pen = QPen(
-                color,
-                size,
-                Qt.SolidLine,
-                Qt.RoundCap,
-                Qt.RoundJoin
-            )
-
-            painter.setPen(
-                pen
-            )
 
             for i in range(
                 1,
@@ -1903,82 +1140,50 @@ class ScreenPen(QWidget):
                     points[i]
                 )
 
-        # -------------------------------------------------
-        # ARROW
-        # -------------------------------------------------
+            return
 
-        elif obj_type == "arrow":
+        start = obj.get(
+            "start"
+        )
+
+        end = obj.get(
+            "end"
+        )
+
+        if (
+            start is None
+            or
+            end is None
+        ):
+
+            return
+
+        if object_type == "arrow":
 
             self.draw_arrow(
                 painter,
-                obj["start"],
-                obj["end"],
-                obj.get(
-                    "color",
-                    self.current_color
-                ),
-                obj.get(
-                    "size",
-                    self.current_size
-                )
+                start,
+                end,
+                color,
+                size
             )
 
-        # -------------------------------------------------
-        # RECTANGLE
-        # -------------------------------------------------
-
-        elif obj_type == "rectangle":
-
-            pen = QPen(
-                obj.get(
-                    "color",
-                    self.current_color
-                ),
-                obj.get(
-                    "size",
-                    self.current_size
-                )
-            )
-
-            painter.setPen(
-                pen
-            )
-
-            painter.setBrush(
-                Qt.NoBrush
-            )
+        elif object_type == "rectangle":
 
             painter.drawRect(
-                obj["rect"]
+                QRect(
+                    start,
+                    end
+                ).normalized()
             )
 
-        # -------------------------------------------------
-        # CIRCLE
-        # -------------------------------------------------
-
-        elif obj_type == "circle":
-
-            pen = QPen(
-                obj.get(
-                    "color",
-                    self.current_color
-                ),
-                obj.get(
-                    "size",
-                    self.current_size
-                )
-            )
-
-            painter.setPen(
-                pen
-            )
-
-            painter.setBrush(
-                Qt.NoBrush
-            )
+        elif object_type == "circle":
 
             painter.drawEllipse(
-                obj["rect"]
+                QRect(
+                    start,
+                    end
+                ).normalized()
             )
 
     # =====================================================
@@ -2076,16 +1281,166 @@ class ScreenPen(QWidget):
             p2
         )
 
+    # =====================================================
+    # ARROW HEAD
+    # =====================================================
+
+    def get_arrow_head_points(
+        self,
+        start,
+        end,
+        size
+    ):
+
+        dx = end.x() - start.x()
+
+        dy = end.y() - start.y()
+
+        length = math.sqrt(
+            dx * dx +
+            dy * dy
+        )
+
+        if length == 0:
+
+            return (
+                end,
+                end
+            )
+
+        ux = dx / length
+
+        uy = dy / length
+
+        arrow_length = max(
+            10,
+            size * 4
+        )
+
+        arrow_width = arrow_length * 0.5
+
+        base_x = (
+            end.x()
+            -
+            ux * arrow_length
+        )
+
+        base_y = (
+            end.y()
+            -
+            uy * arrow_length
+        )
+
+        p1 = QPoint(
+            int(
+                base_x
+                +
+                (-uy * arrow_width)
+            ),
+            int(
+                base_y
+                +
+                (ux * arrow_width)
+            )
+        )
+
+        p2 = QPoint(
+            int(
+                base_x
+                -
+                (-uy * arrow_width)
+            ),
+            int(
+                base_y
+                -
+                (ux * arrow_width)
+            )
+        )
+
+        return (
+            p1,
+            p2
+        )
+
+# =========================================================
+# QR CONNECTION WINDOW
+# =========================================================
+
+class QRWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("ScreenPen - Connect Tablet")
+        self.setFixedSize(420, 540)
+        self.setWindowFlags(
+            Qt.Window
+            | Qt.WindowStaysOnTopHint
+        )
+        self.qr_label = QLabel()
+        self.ip_label = QLabel()
+        self.refresh_button = QPushButton("Refresh QR")
+        self.close_button = QPushButton("Close")
+        layout = QVBoxLayout(self)
+        title = QLabel("Connect Tablet")
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet(
+            "font-size:24px;font-weight:bold;"
+        )
+        self.qr_label.setAlignment(Qt.AlignCenter)
+        self.ip_label.setAlignment(Qt.AlignCenter)
+        self.ip_label.setStyleSheet(
+            "font-size:15px;"
+        )
+        self.refresh_button.clicked.connect(
+            self.refresh_qr
+        )
+        self.close_button.clicked.connect(
+            self.close
+        )
+        layout.addWidget(title)
+        layout.addWidget(self.qr_label)
+        layout.addWidget(self.ip_label)
+        layout.addWidget(self.refresh_button)
+        layout.addWidget(self.close_button)
+        self.refresh_qr()
+
+    def refresh_qr(self):
+        image = generate_connection_qr()
+        if image is None:
+            self.qr_label.setText(
+                "Unable to detect LAN IP"
+            )
+            self.ip_label.setText(
+                "Connect your PC to a network and try again."
+            )
+            return
+        ip = get_local_ip()
+        self.ip_label.setText(
+            f"PC IP: {ip}\n"
+            "Control: 8765   Screen: 8766"
+        )
+        image = image.convert("RGB")
+        image.save("screenpen_qr.png")
+        pixmap = QPixmap("screenpen_qr.png")
+        self.qr_label.setPixmap(
+            pixmap.scaled(
+                330,
+                330,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
+            )
+        )
 
 # =========================================================
 # APPLICATION
 # =========================================================
 
-app = QApplication(
-    sys.argv
-)
+app = QApplication(sys.argv)
+
+local_ip = get_local_ip()
+create_certificate(local_ip)
 
 window = ScreenPen()
+qr_window = QRWindow()
 
 server_thread = threading.Thread(
     target=start_websocket_server,
@@ -2094,44 +1449,27 @@ server_thread = threading.Thread(
 
 server_thread.start()
 
-# Start local network discovery.
-start_mdns()
+screen_stream_thread = threading.Thread(
+    target=start_screen_stream_server,
+    daemon=True
+)
+
+screen_stream_thread.start()
 
 window.show()
+qr_window.show()
 
-print(
-    "========================================"
-)
-
-print(
-    "ScreenPen started"
-)
-
-print(
-    "Tablet input ready"
-)
-
-print(
-    "Pen size:",
-    window.current_size
-)
-
-print(
-    "Eraser size:",
-    window.eraser_size
-)
-
-print(
-    "Object movement support: ON"
-)
-
-print(
-    "========================================"
-)
+print("========================================")
+print("ScreenPen started")
+print("Tablet input ready")
+print("PC IP:", get_local_ip())
+print("QR connection window ready")
+print("Pen size:", window.current_size)
+print("Eraser size:", window.eraser_size)
+print("Object movement support: ON")
+print("========================================")
 
 exit_code = app.exec()
-
-stop_mdns()
 
 sys.exit(
     exit_code

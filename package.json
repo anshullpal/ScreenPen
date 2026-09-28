@@ -1,0 +1,28 @@
+{
+  "name": "screenpen",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anshullpal/ScreenPen.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/anshullpal/ScreenPen/issues"
+  },
+  "homepage": "https://github.com/anshullpal/ScreenPen#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/barcode-scanner": "^3.1.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/screen-orientation": "^8.0.1"
+  }
+}

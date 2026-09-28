@@ -9,32 +9,108 @@ SCREENPEN TABLET CLIENT
    WEBSOCKET
 ======================================================= */
 
+console.log("SCREENPEN JAVASCRIPT TEST - v9");
 const connectionStatus =
-    document.getElementById("connectionStatus");
+    document.getElementById(
+        "connectionStatus"
+    );
 
+const pcConnectionPanel =
+    document.getElementById(
+        "pcConnectionPanel"
+    );
+
+
+const pcIPInput =
+    document.getElementById(
+        "pcIPInput"
+    );
+
+
+const connectPCBtn =
+    document.getElementById(
+        "connectPCBtn"
+    );
+
+
+const localModeBtn =
+    document.getElementById(
+        "localModeBtn"
+    );
+
+const {
+    CapacitorBarcodeScanner,
+    CapacitorBarcodeScannerTypeHint,
+    CapacitorBarcodeScannerCameraDirection,
+    CapacitorBarcodeScannerScanOrientation,
+    ScreenOrientation
+} = Capacitor.Plugins;
 
 let ws = null;
 
+
 let reconnectTimer = null;
+
 
 let manualClose = false;
 
 
-/*
-=========================================================
-SCREENPEN CONNECTION
-=========================================================
-*/
+/* =========================================================
+   SCREENPEN CONNECTION
+========================================================= */
 
-let screenPenIP = "10.83.42.92";
+let screenPenIP =
+    localStorage.getItem(
+        "screenPenIP"
+    ) || "";
 
-let screenPenPort = 8765;
+
+let screenPenPort =
+    8765;
+
+
+let localMode =
+    false;
+
+
+/* =========================================================
+   CONNECTION HELPERS
+========================================================= */
+
+function saveScreenPenIP(
+    ip
+) {
+
+    localStorage.setItem(
+        "screenPenIP",
+        ip
+    );
+
+}
+
+
+function clearScreenPenIP() {
+
+    localStorage.removeItem(
+        "screenPenIP"
+    );
+
+}
 
 
 function getWebSocketURL() {
 
+    if (
+        !screenPenIP
+    ) {
+
+        return null;
+
+    }
+
+
     return (
-        "ws://" +
+        "wss://" +
         screenPenIP +
         ":" +
         screenPenPort
@@ -42,8 +118,154 @@ function getWebSocketURL() {
 
 }
 
+function updateConnectionStatus(text, icon) {
+    if (!connectionStatus) return;
+
+    connectionStatus.innerHTML =
+        icon + " <span>" + text + "</span>";
+}
+
+/* =========================================================
+   CONNECT TO PC
+========================================================= */
+
+function connectToPC(ip) {
+    const cleanedIP = String(ip || "").trim();
+
+    if (!cleanedIP) {
+        updateConnectionStatus(
+            "Disconnected",
+            "🔴"
+        );
+
+        updateHomeConnectionMessage(
+            "Please enter PC IP",
+            "🔴"
+        );
+
+        console.log(
+            "Please enter the Windows PC IP address."
+        );
+
+        return;
+    }
+
+    const ipv4Pattern =
+        /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+
+    if (!ipv4Pattern.test(cleanedIP)) {
+        updateConnectionStatus(
+            "Invalid IP",
+            "🔴"
+        );
+
+        updateHomeConnectionMessage(
+            "Invalid PC IP",
+            "🔴"
+        );
+
+        console.log(
+            "Invalid IPv4 address:",
+            cleanedIP
+        );
+
+        return;
+    }
+
+    localMode = false;
+
+    if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+    }
+
+    screenPenIP = cleanedIP;
+    screenPenPort = 8765;
+
+    if (ws) {
+        const oldSocket = ws;
+        ws = null;
+
+        if (
+            oldSocket.readyState === WebSocket.OPEN ||
+            oldSocket.readyState === WebSocket.CONNECTING
+        ) {
+            try {
+                oldSocket.close(
+                    1000,
+                    "Switching PC"
+                );
+            } catch (error) {
+                console.log(
+                    "Error closing previous WebSocket:",
+                    error
+                );
+            }
+        }
+    }
+
+    updateConnectionStatus(
+        "Connecting...",
+        "🟠"
+    );
+
+    updateHomeConnectionMessage(
+        "Connecting to " + cleanedIP + "...",
+        "🟠"
+    );
+
+    console.log(
+        "Connecting to ScreenPen PC:",
+        cleanedIP
+    );
+
+    console.log(
+        "WebSocket URL:",
+        getWebSocketURL()
+    );
+
+    connectWebSocket();
+}
+
+/* =========================================================
+   WEBSOCKET CONNECTION
+========================================================= */
 
 function connectWebSocket() {
+
+    if (
+        localMode
+    ) {
+
+        console.log(
+            "Local Mode active. WebSocket connection skipped."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        !screenPenIP
+    ) {
+
+        console.log(
+            "ScreenPen PC IP is not available."
+        );
+
+        connectionStatus.innerHTML =
+            "🟠 <span>Enter PC IP</span>";
+
+        updateHomeConnectionMessage(
+            "Enter PC IP",
+            "🟠"
+        );
+
+        return;
+
+    }
+
 
     if (
         ws &&
@@ -58,19 +280,34 @@ function connectWebSocket() {
     }
 
 
-    manualClose = false;
+    manualClose =
+        false;
+
+
+    const url =
+        getWebSocketURL();
 
 
     console.log(
         "Connecting to ScreenPen:",
-        getWebSocketURL()
+        url
+    );
+
+
+    connectionStatus.innerHTML =
+        "🟠 <span>Connecting...</span>";
+
+    updateHomeConnectionMessage(
+        "Connecting to " + screenPenIP + "...",
+        "🟠"
     );
 
 
     ws =
         new WebSocket(
-            getWebSocketURL()
+            url
         );
+
 
     ws.onopen = () => {
 
@@ -81,6 +318,25 @@ function connectWebSocket() {
         console.log(
             "WebSocket connected."
         );
+
+
+        saveScreenPenIP(
+            screenPenIP
+        );
+
+
+        updateHomeConnectionState(
+            true
+        );
+
+
+        updateHomeConnectionMessage(
+            "Connected to " + screenPenIP,
+            "🟢"
+        );
+
+
+        showDrawingInterface();
 
 
         sendCommand(
@@ -119,8 +375,20 @@ function connectWebSocket() {
         );
 
 
+        updateHomeConnectionState(
+            false
+        );
+
+
+        updateHomeConnectionMessage(
+            "Disconnected",
+            "🔴"
+        );
+
+
         if (
-            !manualClose
+            !manualClose &&
+            !localMode
         ) {
 
             scheduleReconnect();
@@ -139,14 +407,42 @@ function connectWebSocket() {
 
 
         connectionStatus.innerHTML =
-            "🔴 <span>Error</span>";
+            "🔴 <span>Connection Error</span>";
+
+
+        updateHomeConnectionMessage(
+            "Connection Error",
+            "🔴"
+        );
 
     };
 
 }
 
 
+/* =========================================================
+   AUTOMATIC RECONNECT
+========================================================= */
+
 function scheduleReconnect() {
+
+    if (
+        localMode
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        !screenPenIP
+    ) {
+
+        return;
+
+    }
+
 
     if (
         reconnectTimer
@@ -164,7 +460,14 @@ function scheduleReconnect() {
                 reconnectTimer =
                     null;
 
-                connectWebSocket();
+
+                if (
+                    !localMode
+                ) {
+
+                    connectWebSocket();
+
+                }
 
             },
             2000
@@ -172,6 +475,87 @@ function scheduleReconnect() {
 
 }
 
+
+/* =========================================================
+   LOCAL MODE
+========================================================= */
+
+function enterLocalMode() {
+
+    console.log(
+        "Entering Local Mode."
+    );
+
+    // Enable Local Mode
+    localMode = true;
+
+    // Stop automatic reconnect
+    manualClose = true;
+
+    if (reconnectTimer) {
+
+        clearTimeout(
+            reconnectTimer
+        );
+
+        reconnectTimer = null;
+
+    }
+
+    // Stop screen preview
+    closeScreenPreview();
+
+    // Close PC WebSocket
+    if (ws) {
+
+        const oldSocket = ws;
+
+        ws = null;
+
+        if (
+            oldSocket.readyState ===
+                WebSocket.OPEN ||
+            oldSocket.readyState ===
+                WebSocket.CONNECTING
+        ) {
+
+            try {
+
+                oldSocket.close(
+                    1000,
+                    "Entering Local Mode"
+                );
+
+            } catch (error) {
+
+                console.log(
+                    "Error closing WebSocket:",
+                    error
+                );
+
+            }
+
+        }
+
+    }
+
+    // Update status
+    connectionStatus.innerHTML =
+        "🔵 <span>Local Mode</span>";
+
+    updateHomeConnectionState(
+        false
+    );
+
+    updateHomeConnectionMessage(
+        "Local Mode",
+        "🔵"
+    );
+
+    // Open drawing interface
+    showDrawingInterface();
+
+}
 
 /* =======================================================
    ELEMENTS
@@ -186,18 +570,6 @@ const canvas =
 const ctx =
     canvas.getContext(
         "2d"
-    );
-
-
-const toolTray =
-    document.getElementById(
-        "toolTray"
-    );
-
-
-const trayToggle =
-    document.getElementById(
-        "trayToggle"
     );
 
 
@@ -287,9 +659,1000 @@ const sizeValue =
 
 const sizeTitle =
     document.querySelector(
-        ".sizeHeader span:first-child"
+        ".toolbarSizeLabel"
     );
 
+/* =======================================================
+   STAGE 1 UI ELEMENTS
+======================================================= */
+
+const homeScreen=
+    document.getElementById(
+        "homeScreen"
+    );
+
+const setupGuide=
+    document.getElementById(
+        "setupGuide"
+    );
+
+const drawingInterface=
+    document.getElementById(
+        "drawingInterface"
+    );
+
+const downloadPCBtn=
+    document.getElementById(
+        "downloadPCBtn"
+    );
+
+const setupBackBtn=
+    document.getElementById(
+        "setupBackBtn"
+    );
+
+const setupBackHomeBtn=
+    document.getElementById(
+        "setupBackHomeBtn"
+    );
+
+const setupWebsiteBtn=
+    document.getElementById(
+        "setupWebsiteBtn"
+    );
+
+const scanQRBtn=
+    document.getElementById(
+        "scanQRBtn"
+    );
+
+const manualIPBtn=
+    document.getElementById(
+        "manualIPBtn"
+    );
+
+const qrScanPanel=
+    document.getElementById(
+        "qrScanPanel"
+    );
+
+const manualIPPanel=
+    document.getElementById(
+        "manualIPPanel"
+    );
+
+const homeConnectionStatus=
+    document.getElementById(
+        "homeConnectionStatus"
+    );
+
+const manageConnectionsBtn=
+    document.getElementById(
+        "manageConnectionsBtn"
+    );
+
+const screenPreviewToggleBtn=
+    document.getElementById(
+        "screenPreviewToggleBtn"
+    );
+
+const settingsBtn=
+    document.getElementById(
+        "settingsBtn"
+    );
+
+/* =======================================================
+
+   LIVE SCREEN STREAM
+
+======================================================= */
+
+/*
+    ScreenPen control WebSocket:
+        8765
+
+    ScreenPen desktop screen stream:
+        8766
+
+    The screen stream uses a separate WebSocket
+    so screen frames do not interfere with
+    drawing commands.
+*/
+
+const STREAM_PORT = 8766;
+
+
+function getScreenStreamURL() {
+
+    if (
+        !screenPenIP
+    ) {
+
+        return null;
+
+    }
+
+
+    return (
+        "wss://" +
+        screenPenIP +
+        ":" +
+        STREAM_PORT
+    );
+
+}
+
+
+const screenPreviewContainer =
+    document.getElementById(
+        "screenPreviewContainer"
+    );
+
+
+const screenPreview =
+    document.getElementById(
+        "screenPreview"
+    );
+
+const drawingScreenPreview =
+    document.getElementById(
+        "drawingScreenPreview"
+    );
+
+
+const screenStreamStatus =
+    document.getElementById(
+        "screenStreamStatus"
+    );
+
+
+let screenStreamSocket = null;
+
+
+let screenStreamObjectUrl = null;
+
+
+let screenStreamEnabled = false;
+
+
+/* =======================================================
+   CONNECT SCREEN STREAM
+======================================================= */
+
+function connectScreenStream() {
+
+    if (localMode) {
+
+        console.log(
+            "Local Mode active. Screen stream skipped."
+        );
+
+        return;
+    }
+
+
+    if (!screenPenIP) {
+
+        console.log(
+            "ScreenPen PC IP is not available."
+        );
+
+        if (screenStreamStatus) {
+            screenStreamStatus.textContent =
+                "🔴";
+        }
+
+        return;
+    }
+
+
+    if (!screenStreamEnabled) {
+
+        console.log(
+            "Screen stream is disabled."
+        );
+
+        return;
+    }
+
+
+    if (
+        screenStreamSocket &&
+        (
+            screenStreamSocket.readyState ===
+                WebSocket.OPEN ||
+            screenStreamSocket.readyState ===
+                WebSocket.CONNECTING
+        )
+    ) {
+
+        return;
+    }
+
+
+    const streamURL =
+        getScreenStreamURL();
+
+
+    if (!streamURL) {
+
+        console.log(
+            "Screen stream URL is not available."
+        );
+
+        if (screenStreamStatus) {
+            screenStreamStatus.textContent =
+                "🔴";
+        }
+
+        return;
+    }
+
+
+    console.log(
+        "Connecting to ScreenPen screen stream:",
+        streamURL
+    );
+
+
+    if (screenStreamStatus) {
+        screenStreamStatus.textContent =
+            "🟠";
+    }
+
+
+    screenStreamSocket =
+        new WebSocket(
+            streamURL
+        );
+
+
+    screenStreamSocket.binaryType =
+        "blob";
+
+
+    screenStreamSocket.onopen = () => {
+
+        console.log(
+            "Screen stream connected."
+        );
+
+
+        if (screenStreamStatus) {
+            screenStreamStatus.textContent =
+                "🟢";
+        }
+
+    };
+
+
+    screenStreamSocket.onmessage =
+        event => {
+
+            if (
+                !screenStreamEnabled ||
+                localMode
+            ) {
+                return;
+            }
+
+
+            if (
+                !(event.data instanceof Blob)
+            ) {
+                return;
+            }
+
+
+            if (screenPreview) {
+
+                const newURL =
+                    URL.createObjectURL(
+                        event.data
+                    );
+
+
+                const oldURL =
+                    screenStreamObjectUrl;
+
+
+                screenStreamObjectUrl =
+                    newURL;
+
+
+                if (screenPreview) {
+    screenPreview.src = newURL;
+}
+
+if (drawingScreenPreview) {
+    drawingScreenPreview.src = newURL;
+}
+
+
+                if (oldURL) {
+
+                    URL.revokeObjectURL(
+                        oldURL
+                    );
+
+                }
+
+            }
+
+        };
+
+
+    screenStreamSocket.onerror =
+        error => {
+
+            console.error(
+                "Screen stream error:",
+                error
+            );
+
+
+            if (screenStreamStatus) {
+                screenStreamStatus.textContent =
+                    "🔴";
+            }
+
+        };
+
+
+    screenStreamSocket.onclose =
+        () => {
+
+            console.log(
+                "Screen stream disconnected."
+            );
+
+
+            if (screenStreamStatus) {
+                screenStreamStatus.textContent =
+                    "🔴";
+            }
+
+
+            screenStreamSocket =
+                null;
+
+
+            if (
+                screenStreamEnabled &&
+                !localMode &&
+                screenPenIP
+            ) {
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            screenStreamEnabled &&
+                            !localMode &&
+                            screenPenIP &&
+                            (
+                                !screenStreamSocket ||
+                                screenStreamSocket.readyState !==
+                                    WebSocket.OPEN
+                            )
+                        ) {
+
+                            connectScreenStream();
+
+                        }
+
+                    },
+                    2000
+                );
+
+            }
+
+        };
+
+}
+
+/* =======================================================
+   OPEN SCREEN PREVIEW
+======================================================= */
+
+function openScreenPreview() {
+
+    if (localMode) {
+
+        console.log(
+            "Screen preview is unavailable in Local Mode."
+        );
+
+        if (screenStreamStatus) {
+            screenStreamStatus.textContent =
+                "🔴";
+        }
+
+        return;
+    }
+
+
+    if (!screenPenIP) {
+
+        console.log(
+            "Connect to a PC before opening screen preview."
+        );
+
+        if (screenStreamStatus) {
+            screenStreamStatus.textContent =
+                "🔴";
+        }
+
+        updateHomeConnectionMessage(
+            "Connect to a PC first",
+            "🟠"
+        );
+
+        return;
+    }
+
+
+    // Make sure the control WebSocket
+    // is actually connected before
+    // starting the screen stream.
+    if (
+        !ws ||
+        ws.readyState !== WebSocket.OPEN
+    ) {
+
+        console.log(
+            "PC control connection is not ready."
+        );
+
+        if (screenStreamStatus) {
+            screenStreamStatus.textContent =
+                "🔴";
+        }
+
+        return;
+    }
+
+
+    screenStreamEnabled =
+        true;
+
+
+    if (screenPreviewContainer) {
+
+        screenPreviewContainer.style.display =
+            "block";
+
+    }
+
+
+    console.log(
+        "Opening ScreenPen desktop preview..."
+    );
+
+
+    connectScreenStream();
+
+}
+
+
+/* =======================================================
+   CLOSE SCREEN PREVIEW
+======================================================= */
+
+function closeScreenPreview() {
+
+    screenStreamEnabled =
+        false;
+
+
+    if (
+        screenPreviewContainer
+    ) {
+
+        screenPreviewContainer.style.display =
+            "none";
+
+    }
+
+
+    if (
+        screenStreamSocket
+    ) {
+
+        try {
+
+            screenStreamSocket.close();
+
+        }
+
+        catch (error) {
+
+            console.warn(
+                "Screen stream close warning:",
+                error
+            );
+
+        }
+
+        screenStreamSocket =
+            null;
+
+    }
+
+
+    if (
+        screenStreamObjectUrl
+    ) {
+
+        URL.revokeObjectURL(
+            screenStreamObjectUrl
+        );
+
+        screenStreamObjectUrl =
+            null;
+
+    }
+
+
+    if (
+        screenPreview
+    ) {
+
+        screenPreview.removeAttribute(
+            "src"
+        );
+
+    }
+
+
+    if (
+        screenStreamStatus
+    ) {
+
+        screenStreamStatus.textContent =
+            "🔴";
+
+    }
+
+}
+
+
+/* =======================================================
+   TOGGLE SCREEN PREVIEW
+======================================================= */
+
+function toggleScreenPreview() {
+
+    if (
+        screenStreamEnabled
+    ) {
+
+        closeScreenPreview();
+
+    }
+
+    else {
+
+        openScreenPreview();
+
+    }
+
+}
+
+/* =======================================================
+   STAGE 1 NAVIGATION
+======================================================= */
+
+async function setOrientation(mode) {
+    try {
+        if (!ScreenOrientation) {
+            console.log("ScreenOrientation plugin unavailable.");
+            return;
+        }
+
+        await ScreenOrientation.lock({
+            orientation: mode
+        });
+
+        console.log(
+            "Screen orientation locked:",
+            mode
+        );
+
+    } catch (error) {
+        console.log(
+            "Screen orientation lock failed:",
+            error
+        );
+    }
+}
+
+function showHomeScreen(){
+    setOrientation("portrait");
+
+    if(homeScreen){
+        homeScreen.hidden=false;
+        homeScreen.style.display="block";
+    }
+
+    if(setupGuide){
+        setupGuide.hidden=true;
+        setupGuide.style.display="none";
+    }
+
+    if(drawingInterface){
+        drawingInterface.hidden=true;
+        drawingInterface.style.display="none";
+    }
+
+    setOrientation("portrait");
+
+    updateHomeConnectionState(
+        !!(
+            ws &&
+            ws.readyState === WebSocket.OPEN
+        )
+    );
+}
+
+function showSetupGuide(){
+    if(homeScreen){
+        homeScreen.hidden=true;
+        homeScreen.style.display="none";
+    }
+
+    if(setupGuide){
+        setupGuide.hidden=false;
+        setupGuide.style.display="block";
+    }
+
+    if(drawingInterface){
+        drawingInterface.hidden=true;
+        drawingInterface.style.display="none";
+    }
+
+    setOrientation("portrait");
+}
+
+function showDrawingInterface(){
+    if(homeScreen){
+        homeScreen.hidden=true;
+        homeScreen.style.display="none";
+    }
+
+    if(setupGuide){
+        setupGuide.hidden=true;
+        setupGuide.style.display="none";
+    }
+
+    if(drawingInterface){
+        drawingInterface.hidden=false;
+        drawingInterface.style.display="block";
+    }
+
+    setOrientation("landscape");
+
+    setTimeout(()=>{
+        resizeCanvas();
+        renderCanvas();
+    },100);
+}
+
+function updateHomeConnectionState(connected){
+    if(!homeConnectionStatus){
+        return;
+    }
+
+    if(localMode){
+        homeConnectionStatus.innerHTML=
+            "🔵 <span>Local Mode</span>";
+        return;
+    }
+
+    if(connected){
+        homeConnectionStatus.innerHTML=
+            "🟢 <span>Connected to "+screenPenIP+"</span>";
+        return;
+    }
+
+    homeConnectionStatus.innerHTML=
+        "⚪ <span>Not Connected</span>";
+}
+
+
+function updateHomeConnectionMessage(
+    text,
+    icon
+){
+    if(!homeConnectionStatus){
+        return;
+    }
+
+    homeConnectionStatus.innerHTML =
+        icon +
+        " <span>" +
+        text +
+        "</span>";
+}
+
+function openManualIPPanel(){
+    if(qrScanPanel){
+        qrScanPanel.style.display="none";
+    }
+
+    if(manualIPPanel){
+        manualIPPanel.style.display="block";
+    }
+
+    if(scanQRBtn){
+        scanQRBtn.classList.remove("active");
+    }
+
+    if(manualIPBtn){
+        manualIPBtn.classList.add("active");
+    }
+}
+
+function openQRPanel(){
+    if(qrScanPanel){
+        qrScanPanel.style.display="block";
+    }
+
+    if(manualIPPanel){
+        manualIPPanel.style.display="none";
+    }
+
+    if(scanQRBtn){
+        scanQRBtn.classList.add("active");
+    }
+
+    if(manualIPBtn){
+        manualIPBtn.classList.remove("active");
+    }
+}
+
+async function scanScreenPenQR(){
+    try{
+        console.log("Starting ScreenPen QR scanner...");
+
+        const result =
+            await CapacitorBarcodeScanner.scanBarcode({
+                hint: 0,
+                scanInstructions: "Scan the ScreenPen QR code",
+                scanButton: false,
+                scanText: "Scan",
+                cameraDirection: 1,
+                scanOrientation: 1
+            });
+
+        const scannedValue =
+            result &&
+            result.ScanResult
+                ? result.ScanResult.trim()
+                : "";
+
+        console.log(
+            "QR scan result:",
+            scannedValue
+        );
+
+        if(!scannedValue){
+            console.log("No QR code scanned.");
+
+            updateConnectionStatus(
+                "No QR Code",
+                "🔴"
+            );
+
+            updateHomeConnectionMessage(
+                "No QR code scanned",
+                "🔴"
+            );
+
+            return;
+        }
+
+        let parsedURL;
+
+        try{
+            parsedURL =
+                new URL(scannedValue);
+        }catch(error){
+            console.error(
+                "Invalid QR data:",
+                scannedValue
+            );
+
+            updateConnectionStatus(
+                "Invalid QR Code",
+                "🔴"
+            );
+
+            updateHomeConnectionMessage(
+                "Invalid QR Code",
+                "🔴"
+            );
+
+            return;
+        }
+
+        if(
+            parsedURL.protocol !==
+            "screenpen:"
+        ){
+            console.error(
+                "Not a ScreenPen QR code."
+            );
+
+            updateConnectionStatus(
+                "Invalid ScreenPen QR",
+                "🔴"
+            );
+
+            updateHomeConnectionMessage(
+                "Invalid ScreenPen QR",
+                "🔴"
+            );
+
+            return;
+        }
+
+        if(
+            parsedURL.hostname !==
+            "connect"
+        ){
+            console.error(
+                "Invalid ScreenPen QR host."
+            );
+
+            updateConnectionStatus(
+                "Invalid ScreenPen QR",
+                "🔴"
+            );
+
+            updateHomeConnectionMessage(
+                "Invalid ScreenPen QR",
+                "🔴"
+            );
+
+            return;
+        }
+
+        const host =
+            parsedURL.searchParams.get(
+                "host"
+            );
+
+        const controlPort =
+            parsedURL.searchParams.get(
+                "control"
+            );
+
+        const screenPort =
+            parsedURL.searchParams.get(
+                "screen"
+            );
+
+        console.log(
+            "QR Host:",
+            host
+        );
+
+        console.log(
+            "QR Control Port:",
+            controlPort
+        );
+
+        console.log(
+            "QR Screen Port:",
+            screenPort
+        );
+
+        const ipv4Pattern =
+            /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+
+        if(
+            !host ||
+            !ipv4Pattern.test(host)
+        ){
+            updateConnectionStatus(
+                "Invalid PC IP",
+                "🔴"
+            );
+
+            updateHomeConnectionMessage(
+                "Invalid PC IP",
+                "🔴"
+            );
+
+            return;
+        }
+
+        if(
+            controlPort &&
+            controlPort !== "8765"
+        ){
+            updateConnectionStatus(
+                "Invalid Control Port",
+                "🔴"
+            );
+
+            updateHomeConnectionMessage(
+                "Invalid Control Port",
+                "🔴"
+            );
+
+            return;
+        }
+
+        if(
+            screenPort &&
+            screenPort !== "8766"
+        ){
+            updateConnectionStatus(
+                "Invalid Screen Port",
+                "🔴"
+            );
+
+            updateHomeConnectionMessage(
+                "Invalid Screen Port",
+                "🔴"
+            );
+
+            return;
+        }
+
+        screenPenIP =
+            host;
+
+        screenPenPort =
+            8765;
+
+        saveScreenPenIP(
+            host
+        );
+
+        if(pcIPInput){
+            pcIPInput.value =
+                host;
+        }
+
+        console.log(
+            "ScreenPen PC detected:",
+            host
+        );
+
+        updateConnectionStatus(
+            "PC Found",
+            "🟢"
+        );
+
+        updateHomeConnectionMessage(
+            "PC Found: " + host,
+            "🟢"
+        );
+
+        connectToPC(
+            host
+        );
+
+    }catch(error){
+        console.error(
+            "QR scanner error:",
+            error
+        );
+
+        updateConnectionStatus(
+            "Scanner Error",
+            "🔴"
+        );
+
+        updateHomeConnectionMessage(
+            "Scanner Error",
+            "🔴"
+        );
+    }
+}
 
 /* =======================================================
    STATE
@@ -314,9 +1677,6 @@ let eraserSize =
 let drawing =
     false;
 
-
-let trayOpen =
-    false;
 
 
 /* =======================================================
@@ -751,18 +2111,14 @@ function updateSizeControl() {
         sizeTitle.textContent =
             "Eraser Size";
 
-
         sizeSlider.min =
             "5";
-
 
         sizeSlider.max =
             "100";
 
-
         sizeSlider.value =
             eraserSize;
-
 
         sizeValue.textContent =
             eraserSize;
@@ -774,18 +2130,14 @@ function updateSizeControl() {
         sizeTitle.textContent =
             "Brush Size";
 
-
         sizeSlider.min =
             "1";
-
 
         sizeSlider.max =
             "50";
 
-
         sizeSlider.value =
             brushSize;
-
 
         sizeValue.textContent =
             brushSize;
@@ -4138,60 +5490,6 @@ function pointNearCircle(
 }
 
 
-/* =======================================================
-   TRAY
-======================================================= */
-
-trayToggle.addEventListener(
-    "pointerup",
-    event => {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-
-        trayOpen =
-            !trayOpen;
-
-
-        if (
-            trayOpen
-        ) {
-
-            toolTray.classList.remove(
-                "collapsed"
-            );
-
-
-            trayToggle.textContent =
-                "×";
-
-
-            trayToggle.title =
-                "Close Tools";
-
-        }
-
-        else {
-
-            toolTray.classList.add(
-                "collapsed"
-            );
-
-
-            trayToggle.textContent =
-                "☰";
-
-
-            trayToggle.title =
-                "Open Tools";
-
-        }
-
-    }
-);
-
 
 /* =======================================================
    TOOL BUTTONS
@@ -4477,12 +5775,11 @@ screenBtn.addEventListener(
 
         event.stopPropagation();
 
-
         console.log(
-
-            "Desktop Screen Preview is coming in Step 2."
-
+            "Screen preview button pressed."
         );
+
+        toggleScreenPreview();
 
     }
 );
@@ -4497,68 +5794,270 @@ exitBtn.addEventListener(
     event => {
 
         event.preventDefault();
-
         event.stopPropagation();
 
-
-        manualClose =
-            true;
-
-
-        sendCommand(
-            "exit"
+        console.log(
+            "Returning to Home screen."
         );
+
+        // Prevent automatic WebSocket reconnect
+        manualClose = true;
+
+        // Stop screen streaming
+        closeScreenPreview();
+
+        // Close WebSocket connection
+        if (ws) {
+
+            const oldSocket = ws;
+
+            ws = null;
+
+            if (
+                oldSocket.readyState ===
+                    WebSocket.OPEN ||
+                oldSocket.readyState ===
+                    WebSocket.CONNECTING
+            ) {
+
+                try {
+
+                    oldSocket.close(
+                        1000,
+                        "Returning Home"
+                    );
+
+                } catch (error) {
+
+                    console.log(
+                        "Error closing WebSocket:",
+                        error
+                    );
+
+                }
+
+            }
+
+        }
+
+        // Update connection state
+        updateHomeConnectionState(
+            false
+        );
+
+        updateHomeConnectionMessage(
+            "Not Connected",
+            "🔴"
+        );
+
+    if (connectionStatus) {
+    connectionStatus.innerHTML =
+        "⚪ <span>Not Connected</span>";
+}
+
+        // Return to Home
+        showHomeScreen();
 
     }
 );
+
+/* =========================================================
+   PC CONNECTION UI
+========================================================= */
+
+if (
+    pcIPInput
+) {
+
+    /*
+    Show previously saved PC IP.
+    */
+
+    pcIPInput.value =
+        screenPenIP || "";
+
+}
+
+
+/* =========================================================
+   CONNECT BUTTON
+========================================================= */
+
+if (connectPCBtn) {
+    connectPCBtn.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const ip = pcIPInput
+            ? pcIPInput.value.trim()
+            : "";
+
+        console.log(
+            "IP entered:",
+            ip
+        );
+
+        connectToPC(ip);
+    });
+}
+
+
+/* =========================================================
+   ENTER KEY IN IP INPUT
+========================================================= */
+
+if (
+    pcIPInput
+) {
+
+    pcIPInput.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+
+                const ip =
+                    pcIPInput.value.trim();
+
+
+                connectToPC(
+                    ip
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   LOCAL MODE BUTTON
+========================================================= */
+
+if (
+    localModeBtn
+) {
+
+    localModeBtn.addEventListener(
+        "click",
+        event => {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+
+            enterLocalMode();
+
+        }
+    );
+
+}
+
+/* =======================================================
+   STAGE 1 HOME BUTTONS
+======================================================= */
+
+if(downloadPCBtn){
+    downloadPCBtn.addEventListener(
+        "click",
+        event=>{
+            event.preventDefault();
+            event.stopPropagation();
+            showSetupGuide();
+        }
+    );
+}
+
+if(setupBackBtn){
+    setupBackBtn.addEventListener(
+        "click",
+        event=>{
+            event.preventDefault();
+            showHomeScreen();
+        }
+    );
+}
+
+if(setupBackHomeBtn){
+    setupBackHomeBtn.addEventListener(
+        "click",
+        event=>{
+            event.preventDefault();
+            showHomeScreen();
+        }
+    );
+}
+
+if(scanQRBtn){
+    scanQRBtn.addEventListener(
+        "click",
+        async event=>{
+            event.preventDefault();
+            event.stopPropagation();
+
+            openQRPanel();
+
+            await scanScreenPenQR();
+        }
+    );
+}
+
+if(manualIPBtn){
+    manualIPBtn.addEventListener(
+        "click",
+        event=>{
+            event.preventDefault();
+            openManualIPPanel();
+
+            if(pcIPInput){
+                pcIPInput.focus();
+            }
+        }
+    );
+}
 
 
 /* =======================================================
    INITIALIZATION
 ======================================================= */
 
-function initialize() {
+function initialize(){
 
     /*
     Prevent browser scrolling/zooming from interfering
     with drawing.
     */
 
-    canvas.style.touchAction =
-        "none";
+    canvas.style.touchAction = "none";
 
 
-    toolTray.classList.add(
-        "collapsed"
-    );
-
-
-    trayOpen =
-        false;
-
-
-    trayToggle.textContent =
-        "☰";
-
-
-    trayToggle.title =
-        "Open Tools";
-
+    /*
+    Initialize color.
+    */
 
     color =
         colorPicker.value ||
         "#ff0000";
 
-
     colorPreview.style.background =
         color;
 
+
+    /*
+    Initialize brush size.
+    */
 
     brushSize =
         Number(
             sizeSlider.value
         ) || 5;
-
 
     sizeValue.textContent =
         String(
@@ -4566,36 +6065,97 @@ function initialize() {
         );
 
 
+    /*
+    Initialize the active drawing tool
+    and size controls.
+    */
+
     updateActiveTool();
-
-
     updateSizeControl();
 
+
+    /*
+    Resize the drawing canvas.
+    */
 
     resizeCanvas();
 
 
-    connectWebSocket();
+    /*
+    Restore the previously saved Windows PC IP.
 
+    Do NOT connect automatically.
+    The user must press Connect.
+    */
+
+    if(screenPenIP){
+
+        console.log(
+            "Saved ScreenPen PC IP:",
+            screenPenIP
+        );
+
+        if(pcIPInput){
+
+            pcIPInput.value =
+                screenPenIP;
+
+        }
+
+    }else{
+
+        console.log(
+            "No saved ScreenPen PC IP."
+        );
+
+    }
+
+
+    /*
+    Initial connection status.
+    */
+
+   if (connectionStatus) {
+    connectionStatus.innerHTML =
+        "🔴 <span>Not Connected</span>";
+}
+    /*
+    Make sure the Home screen shows
+    the correct disconnected state.
+    */
+
+    updateHomeConnectionState(false);
+
+
+    /*
+    Show the Home screen when the app starts.
+    */
+
+    showHomeScreen();
+
+
+    /*
+    Open the manual PC IP connection panel.
+    */
+
+    openManualIPPanel();
+
+
+    /*
+    Startup logs.
+    */
 
     console.log(
         "ScreenPen loaded."
     );
 
-
     console.log(
-
         "Double-tap an object to select it."
-
     );
-
 
     console.log(
-
         "After selection, drag from inside the object to move it."
-
     );
-
 }
 
 

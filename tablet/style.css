@@ -1,866 +1,1335 @@
-/* =========================================================
-   SCREENPEN TABLET
-   STEP 1 - TABLET UI
-========================================================= */
-
-
-/* =========================================================
-   GLOBAL
-========================================================= */
-
-* {
-
-    box-sizing: border-box;
-
+*{
+    box-sizing:border-box;
 }
-
 
 html,
-body {
+body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#080b12;
+    color:#fff;
+    font-family:Arial,sans-serif;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+}
 
-    margin: 0;
+button,
+input,
+.methodButton,
+.connectionMethods,
+.homeCard{
+    touch-action:manipulation;
+}
 
-    padding: 0;
+button,
+input{
+    font-family:inherit;
+}
 
-    width: 100%;
+button{
+    -webkit-tap-highlight-color:transparent;
+}
 
-    height: 100%;
+button:active{
+    transform:scale(.97);
+}
 
-    overflow: hidden;
-
-    background: #ffffff;
-
-    touch-action: none;
-
-    user-select: none;
-
-    -webkit-user-select: none;
-
-    -webkit-touch-callout: none;
-
+.hidden{
+    display:none!important;
 }
 
 
-/* =========================================================
-   FULL-SCREEN DRAWING CANVAS
-========================================================= */
+/* ========================================
+   HOME SCREEN
+   ======================================== */
 
-#drawingCanvas {
-
-    position: fixed;
-
-    left: 0;
-
-    top: 0;
-
-    width: 100vw;
-
-    height: 100vh;
-
-    display: block;
-
-    background: #ffffff;
-
-    z-index: 1;
-
-    touch-action: none;
-
+.homeScreen{
+    position:fixed;
+    inset:0;
+    z-index:5000;
+    overflow-y:auto;
+    overflow-x:hidden;
+    background:
+        radial-gradient(
+            circle at 50% -10%,
+            #172d55 0,
+            #0b1220 38%,
+            #070a10 75%
+        );
+    padding:22px 18px 30px;
 }
 
-
-/* =========================================================
-   RIGHT TOOL TRAY
-========================================================= */
-
-#toolTray {
-
-    position: fixed;
-
-    right: 10px;
-
-    top: 50%;
-
-    transform: translateY(-50%);
-
-    z-index: 1000;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: flex-end;
-
-    pointer-events: none;
-
+.homeHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    max-width:620px;
+    margin:0 auto 24px;
 }
 
+.brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
 
-/* =========================================================
-   MENU BUTTON
-========================================================= */
+.brandIcon{
+    width:48px;
+    height:48px;
+    border-radius:14px;
 
-.trayToggle {
+    display:flex;
+    align-items:center;
+    justify-content:center;
 
-    width: 56px;
-
-    height: 56px;
-
-    padding: 0;
-
-    border: none;
-
-    border-radius: 16px;
-
-    background: rgba(
-        18,
-        18,
-        18,
-        0.96
+    background:linear-gradient(
+        145deg,
+        #2589ff,
+        #1355c5
     );
-
-    color: #ffffff;
-
-    font-family:
-        Arial,
-        sans-serif;
-
-    font-size: 28px;
-
-    line-height: 1;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    pointer-events: auto;
-
-    cursor: pointer;
 
     box-shadow:
-        0 5px 20px
-        rgba(
-            0,
-            0,
-            0,
-            0.40
+        0 8px 25px rgba(25,112,255,.3);
+
+    font-size:24px;
+}
+
+.brandName{
+    font-size:26px;
+    font-weight:800;
+    letter-spacing:-.8px;
+}
+
+.brandName span{
+    color:#4da3ff;
+}
+
+.brandTagline{
+    margin-top:2px;
+    color:#8190a8;
+    font-size:11px;
+    letter-spacing:.4px;
+}
+
+.iconButton,
+.smallIconButton{
+    border:1px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.06);
+    color:#fff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    cursor:pointer;
+}
+
+.iconButton{
+    width:42px;
+    height:42px;
+    border-radius:13px;
+    font-size:20px;
+}
+
+.smallIconButton{
+    width:30px;
+    height:30px;
+    border-radius:9px;
+    font-size:14px;
+}
+
+.homeCard,
+.statusCard{
+    width:100%;
+    max-width:620px;
+    margin:0 auto 14px;
+
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:20px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(22,31,48,.96),
+            rgba(12,18,29,.96)
         );
-
-    -webkit-tap-highlight-color:
-        transparent;
-
-}
-
-
-.trayToggle:active {
-
-    transform:
-        scale(0.92);
-
-}
-
-
-/* =========================================================
-   TOOL PANEL
-========================================================= */
-
-.toolPanel {
-
-    width: 172px;
-
-    margin-top: 7px;
-
-    padding: 9px;
-
-    background: rgba(
-        18,
-        18,
-        18,
-        0.96
-    );
-
-    border-radius: 18px;
 
     box-shadow:
-        0 8px 30px
-        rgba(
-            0,
-            0,
-            0,
-            0.45
-        );
-
-    backdrop-filter:
-        blur(12px);
-
-    -webkit-backdrop-filter:
-        blur(12px);
-
-    pointer-events: auto;
-
+        0 12px 35px rgba(0,0,0,.22);
 }
 
+.pcDownloadCard{
+    padding:18px;
 
-/* =========================================================
-   CLOSED
-========================================================= */
-
-#toolTray.collapsed .toolPanel {
-
-    display: none;
-
+    display:grid;
+    grid-template-columns:46px 1fr;
+    gap:13px;
+    align-items:center;
 }
 
+.cardIcon{
+    width:44px;
+    height:44px;
+    border-radius:13px;
 
-/* =========================================================
-   CONNECTION STATUS
-========================================================= */
+    background:rgba(54,139,255,.12);
+    color:#55a7ff;
 
-.connectionStatus {
+    display:flex;
+    align-items:center;
+    justify-content:center;
 
-    width: 100%;
+    font-size:21px;
+    flex:none;
+}
 
-    height: 27px;
+.windowsIcon{
+    background:linear-gradient(
+        145deg,
+        #1877ed,
+        #1452a9
+    );
+    color:#fff;
+}
 
-    margin-bottom: 7px;
+.cardContent{
+    min-width:0;
+}
 
-    padding: 0 8px;
+.cardContent h2,
+.cardHeader h2{
+    margin:0;
+    color:#fff;
+    font-size:16px;
+}
 
-    border-radius: 9px;
+.cardContent p,
+.cardHeader p{
+    margin:5px 0 0;
+    color:#8491a6;
+    font-size:11px;
+    line-height:1.45;
+}
 
-    background: rgba(
-        255,
-        255,
-        255,
-        0.08
+.downloadButton{
+    grid-column:1/-1;
+}
+
+.primaryButton,
+.secondaryButton{
+    border:none;
+    border-radius:12px;
+    min-height:44px;
+    padding:0 16px;
+
+    cursor:pointer;
+
+    font-size:13px;
+    font-weight:700;
+}
+
+.primaryButton{
+    background:linear-gradient(
+        135deg,
+        #2f91ff,
+        #1760d1
     );
 
-    color: #ffffff;
-
-    font-family:
-        Arial,
-        sans-serif;
-
-    font-size: 11px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 5px;
-
-}
-
-
-/* =========================================================
-   TWO-COLUMN TOOL GRID
-========================================================= */
-
-.toolsGrid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(
-            2,
-            1fr
-        );
-
-    gap: 6px;
-
-}
-
-
-/* =========================================================
-   TOOL BUTTON
-========================================================= */
-
-.toolButton {
-
-    height: 54px;
-
-    padding: 4px;
-
-    border: none;
-
-    border-radius: 12px;
-
-    background: rgba(
-        255,
-        255,
-        255,
-        0.10
-    );
-
-    color: #ffffff;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 2px;
-
-    cursor: pointer;
-
-    -webkit-tap-highlight-color:
-        transparent;
-
-}
-
-
-.toolButton:active {
-
-    transform:
-        scale(0.94);
-
-}
-
-
-/* =========================================================
-   ACTIVE TOOL
-========================================================= */
-
-.toolButton.active {
-
-    background: #ffffff;
-
-    color: #111111;
+    color:#fff;
 
     box-shadow:
-        0 0 0 2px
-        rgba(
-            255,
-            255,
-            255,
-            0.30
+        0 7px 20px rgba(24,108,230,.25);
+}
+
+.secondaryButton{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.08);
+    color:#cdd7e8;
+}
+
+.connectionCard{
+    padding:18px;
+}
+
+.cardHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    gap:12px;
+
+    margin-bottom:16px;
+}
+
+.cardTitle{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    min-width:0;
+}
+
+.cardTitle h2{
+    font-size:15px;
+}
+
+.connectionMethods{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+
+    margin-bottom:14px;
+}
+
+.methodButton{
+    height:72px;
+
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;
+
+    background:rgba(255,255,255,.045);
+    color:#aebbd0;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    gap:6px;
+
+    cursor:pointer;
+}
+
+.methodButton span{
+    font-size:23px;
+}
+
+.methodButton strong{
+    font-size:11px;
+}
+
+.methodButton.active{
+    border-color:rgba(55,146,255,.55);
+
+    background:rgba(35,120,235,.12);
+
+    color:#fff;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(55,146,255,.12);
+}
+
+.qrScanPanel{
+    display:none;
+}
+
+.qrPlaceholder{
+    min-height:170px;
+
+    border:1px dashed rgba(76,158,255,.4);
+    border-radius:16px;
+
+    background:rgba(24,101,190,.06);
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    text-align:center;
+
+    padding:20px;
+}
+
+.qrPlaceholderIcon{
+    width:70px;
+    height:70px;
+
+    border:2px solid #459cff;
+    border-radius:12px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:#55a7ff;
+    font-size:42px;
+
+    margin-bottom:12px;
+}
+
+.qrPlaceholder strong{
+    font-size:13px;
+}
+
+.qrPlaceholder span{
+    max-width:250px;
+
+    margin-top:6px;
+
+    color:#7f8ca1;
+    font-size:10px;
+    line-height:1.4;
+}
+
+.orDivider{
+    height:20px;
+
+    display:flex;
+    align-items:center;
+
+    gap:10px;
+
+    color:#5f6c81;
+    font-size:9px;
+}
+
+.orDivider:before,
+.orDivider:after{
+    content:"";
+
+    height:1px;
+    flex:1;
+
+    background:rgba(255,255,255,.08);
+}
+
+.manualIPPanel label{
+    display:block;
+
+    color:#9aa7bb;
+
+    font-size:10px;
+
+    margin:3px 0 7px;
+}
+
+.pcIPInput{
+    width:100%;
+    height:45px;
+
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:11px;
+
+    background:#080e18;
+    color:#fff;
+
+    padding:0 13px;
+
+    outline:none;
+
+    font-size:13px;
+}
+
+.pcIPInput:focus{
+    border-color:#348fff;
+
+    box-shadow:
+        0 0 0 3px rgba(52,143,255,.1);
+}
+
+.connectionButton{
+    width:100%;
+    margin-top:10px;
+}
+
+.localModeCard{
+    padding:15px 17px;
+
+    display:flex;
+    align-items:center;
+
+    gap:12px;
+
+    color:#fff;
+    text-align:left;
+
+    cursor:pointer;
+}
+
+.localModeCard .cardContent{
+    flex:1;
+}
+
+.localModeCard strong{
+    display:block;
+    font-size:14px;
+}
+
+.localModeCard small{
+    display:block;
+
+    margin-top:4px;
+
+    color:#7f8ca1;
+    font-size:10px;
+}
+
+.cardArrow{
+    color:#68809f;
+    font-size:27px;
+}
+
+.statusCard{
+    padding:13px 15px;
+}
+
+.homeConnectionStatus{
+    display:flex;
+    align-items:center;
+    gap:11px;
+}
+
+.statusDot{
+    width:9px;
+    height:9px;
+
+    border-radius:50%;
+
+    background:#657187;
+
+    box-shadow:
+        0 0 10px rgba(101,113,135,.4);
+}
+
+.homeConnectionStatus strong{
+    display:block;
+    font-size:11px;
+}
+
+.homeConnectionStatus small{
+    display:block;
+
+    color:#6f7d92;
+
+    font-size:9px;
+
+    margin-top:3px;
+}
+
+.savedConnectionsCard,
+.pcPreviewCard{
+    padding:16px;
+}
+
+.savedConnectionsList{
+    min-height:55px;
+}
+
+.savedConnectionEmpty{
+    display:flex;
+    align-items:center;
+
+    gap:11px;
+
+    padding:11px;
+
+    border-radius:12px;
+
+    background:rgba(255,255,255,.035);
+
+    color:#6f7d92;
+}
+
+.savedConnectionEmpty>span{
+    font-size:18px;
+}
+
+.savedConnectionEmpty strong{
+    display:block;
+
+    color:#a9b5c8;
+
+    font-size:10px;
+}
+
+.savedConnectionEmpty small{
+    display:block;
+
+    margin-top:3px;
+
+    font-size:9px;
+}
+
+.screenPreviewContent{
+    width:100%;
+
+    aspect-ratio:16/9;
+
+    background:#05070b;
+
+    border-radius:12px;
+
+    overflow:hidden;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.screenPreview{
+    width:100%;
+    height:100%;
+
+    object-fit:contain;
+
+    display:block;
+}
+
+.pcPreviewCard .screenPreview{
+    min-height:80px;
+}
+
+.screenPreviewToggle{
+    width:100%;
+    margin-top:10px;
+}
+
+
+/* ========================================
+   SETUP GUIDE
+   ======================================== */
+
+.setupGuide{
+    position:fixed;
+    inset:0;
+
+    z-index:6000;
+
+    overflow-y:auto;
+
+    background:
+        radial-gradient(
+            circle at 50% -10%,
+            #172d55 0,
+            #0b1220 38%,
+            #070a10 75%
         );
 
+    padding:18px;
 }
 
+.setupHeader{
+    max-width:620px;
 
-/* =========================================================
-   TOOL ICON
-========================================================= */
+    margin:0 auto 25px;
 
-.toolIcon {
+    display:flex;
+    align-items:center;
 
-    font-size: 23px;
-
-    line-height: 23px;
-
+    gap:13px;
 }
 
-
-/* =========================================================
-   TOOL LABEL
-========================================================= */
-
-.toolLabel {
-
-    font-family:
-        Arial,
-        sans-serif;
-
-    font-size: 9px;
-
-    font-weight: 500;
-
-    line-height: 10px;
-
-    white-space: nowrap;
-
+.setupHeader h1{
+    margin:0;
+    font-size:20px;
 }
 
+.setupHeader p{
+    margin:5px 0 0;
 
-/* =========================================================
-   SEPARATOR
-========================================================= */
+    color:#7f8ca1;
 
-.separator {
-
-    width: 100%;
-
-    height: 1px;
-
-    margin: 8px 0;
-
-    background: rgba(
-        255,
-        255,
-        255,
-        0.18
-    );
-
+    font-size:10px;
 }
 
+.setupContent{
+    max-width:620px;
 
-/* =========================================================
-   COLOR SECTION
-========================================================= */
+    margin:0 auto;
 
-.controlSection {
-
-    width: 100%;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    padding: 4px 5px;
-
+    padding-bottom:25px;
 }
 
+.setupIntro{
+    text-align:center;
 
-.controlTitle {
-
-    color: #ffffff;
-
-    font-family:
-        Arial,
-        sans-serif;
-
-    font-size: 12px;
-
+    padding:8px 10px 20px;
 }
 
-
-.colorControl {
-
-    width: 78px;
-
-    height: 34px;
-
-    border-radius: 9px;
-
-    background: rgba(
-        255,
-        255,
-        255,
-        0.10
-    );
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    cursor: pointer;
-
-}
-
-
-.colorPreview {
-
-    width: 50px;
-
-    height: 20px;
-
-    border-radius: 5px;
-
-    background: #ff0000;
-
-    border: 2px solid #ffffff;
-
-}
-
-
-.colorControl input {
-
-    position: absolute;
-
-    width: 1px;
-
-    height: 1px;
-
-    opacity: 0;
-
-}
-
-
-/* =========================================================
-   BRUSH SIZE
-========================================================= */
-
-.sizeSection {
-
-    width: 100%;
-
-    padding: 5px 4px;
-
-}
-
-
-.sizeHeader {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    margin-bottom: 5px;
-
-    color: #ffffff;
-
-    font-family:
-        Arial,
-        sans-serif;
-
-    font-size: 11px;
-
-}
-
-
-#sizeValue {
-
-    min-width: 20px;
-
-    text-align: right;
-
-    font-weight: bold;
-
-}
-
-
-/* =========================================================
-   HORIZONTAL SIZE SLIDER
-========================================================= */
-
-.sizeRow {
-
-    width: 100%;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-}
-
-
-.sizeSmall,
-.sizeLarge {
-
-    color: #ffffff;
-
-    line-height: 1;
-
-}
-
-
-.sizeSmall {
-
-    font-size: 8px;
-
-}
-
-
-.sizeLarge {
-
-    font-size: 17px;
-
-}
-
-
-#sizeSlider {
-
-    flex: 1;
-
-    width: 100%;
-
-    height: 22px;
-
-    margin: 0;
-
-    accent-color: #ffffff;
-
-    cursor: pointer;
-
-}
-
-
-/* =========================================================
-   ACTION GRID
-========================================================= */
-
-.actionsGrid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(
-            2,
-            1fr
+.setupIcon{
+    width:68px;
+    height:68px;
+
+    border-radius:20px;
+
+    margin:0 auto 13px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:
+        linear-gradient(
+            145deg,
+            #268aff,
+            #1455b9
         );
 
-    gap: 6px;
+    font-size:31px;
 
+    box-shadow:
+        0 10px 30px rgba(30,120,255,.25);
+}
+
+.setupIntro h2{
+    margin:0;
+    font-size:17px;
+}
+
+.setupIntro p{
+    margin:7px auto 0;
+
+    max-width:330px;
+
+    color:#7d8a9f;
+
+    font-size:10px;
+    line-height:1.5;
+}
+
+.setupStep{
+    display:flex;
+
+    gap:13px;
+
+    margin-bottom:10px;
+
+    padding:15px;
+
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:16px;
+
+    background:rgba(18,27,42,.9);
+}
+
+.stepNumber{
+    width:30px;
+    height:30px;
+
+    border-radius:10px;
+
+    flex:none;
+
+    background:rgba(49,143,255,.14);
+    color:#54a4ff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:12px;
+    font-weight:800;
+}
+
+.stepContent h3{
+    margin:1px 0 5px;
+    font-size:13px;
+}
+
+.stepContent p{
+    margin:0;
+
+    color:#7f8ca1;
+
+    font-size:10px;
+    line-height:1.5;
+}
+
+.setupContent>.primaryButton,
+.setupContent>.secondaryButton{
+    width:100%;
+    margin-top:8px;
 }
 
 
-/* =========================================================
-   ACTION BUTTON
-========================================================= */
+/* ========================================
+   DRAWING INTERFACE
+   ======================================== */
 
-.actionButton {
+#drawingInterface{
+    position:fixed;
+    inset:0;
 
-    height: 50px;
+    z-index:4000;
 
-    padding: 3px;
+    background:transparent;
+}
 
-    border: none;
+#drawingCanvas{
+    position:fixed;
 
-    border-radius: 11px;
+    left:0;
+    top:0;
 
-    background: rgba(
-        255,
-        255,
-        255,
-        0.10
-    );
+    width:100vw;
+    height:100vh;
 
-    color: #ffffff;
+    display:block;
 
-    display: flex;
+    background:transparent;
 
-    flex-direction: column;
+    z-index:10;
 
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 2px;
-
-    cursor: pointer;
-
-    -webkit-tap-highlight-color:
-        transparent;
-
+    touch-action:none;
 }
 
 
-.actionButton:active {
+/* ========================================
+   HORIZONTAL DRAWING TOOLBAR
+   ======================================== */
 
-    transform:
-        scale(0.94);
+#drawingToolbar{
+    position:fixed;
 
+    left:50%;
+    top:12px;
+
+    transform:translateX(-50%);
+
+    z-index:1000;
+
+    display:flex;
+    align-items:center;
+
+    gap:6px;
+
+    padding:8px 10px;
+
+    max-width:calc(100vw - 20px);
+
+    background:rgba(15,18,25,.94);
+
+    border:1px solid rgba(255,255,255,.10);
+
+    border-radius:16px;
+
+    box-shadow:
+        0 8px 30px rgba(0,0,0,.45),
+        0 2px 8px rgba(0,0,0,.25);
+
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+
+    pointer-events:auto;
 }
 
 
-/* =========================================================
-   ACTION ICON
-========================================================= */
+/* ========================================
+   TOOL GROUP
+   ======================================== */
 
-.actionIcon {
-
-    font-size: 21px;
-
-    line-height: 21px;
-
+.toolbarTools{
+    display:flex;
+    align-items:center;
+    gap:5px;
 }
 
 
-/* =========================================================
-   ACTION LABEL
-========================================================= */
+/* ========================================
+   TOOL + ACTION BUTTONS
+   ======================================== */
 
-.actionLabel {
+.toolbarButton,
+.toolbarAction{
+    width:52px;
+    height:48px;
 
-    font-family:
-        Arial,
-        sans-serif;
+    padding:4px;
 
-    font-size: 9px;
+    border:1px solid transparent;
+    border-radius:11px;
 
-    line-height: 10px;
+    background:rgba(255,255,255,.07);
 
+    color:#fff;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    gap:2px;
+
+    cursor:pointer;
+
+    flex:none;
+
+    -webkit-tap-highlight-color:transparent;
+}
+
+.toolbarButton:hover,
+.toolbarAction:hover{
+    background:rgba(255,255,255,.12);
+}
+
+.toolbarButton.active{
+    background:#fff;
+    color:#111;
+
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,.35),
+        0 3px 10px rgba(255,255,255,.08);
+}
+
+.toolbarIcon{
+    font-size:20px;
+    line-height:20px;
+}
+
+.toolbarLabel{
+    font-family:Arial,sans-serif;
+
+    font-size:8px;
+    line-height:10px;
+
+    white-space:nowrap;
 }
 
 
-/* =========================================================
-   DANGER
-========================================================= */
+/* ========================================
+   TOOLBAR DIVIDER
+   ======================================== */
 
-.actionButton.danger {
+.toolbarDivider{
+    width:1px;
+    height:32px;
 
-    background: rgba(
-        180,
-        40,
-        40,
-        0.45
-    );
+    margin:0 3px;
 
+    background:rgba(255,255,255,.14);
+
+    flex:none;
 }
 
 
-/* =========================================================
-   PHONE
-========================================================= */
+/* ========================================
+   COLOR PICKER
+   ======================================== */
 
-@media (
-    max-width: 600px
-) {
+.toolbarColor{
+    width:46px;
+    height:48px;
 
-    #toolTray {
+    border-radius:11px;
 
-        right: 7px;
+    background:rgba(255,255,255,.07);
 
-    }
+    display:flex;
+    align-items:center;
+    justify-content:center;
 
+    cursor:pointer;
 
-    .trayToggle {
+    position:relative;
 
-        width: 50px;
+    flex:none;
 
-        height: 50px;
+    -webkit-tap-highlight-color:transparent;
+}
 
-        font-size: 25px;
+.toolbarColor:hover{
+    background:rgba(255,255,255,.12);
+}
 
-        border-radius: 14px;
+.toolbarColor input{
+    position:absolute;
 
-    }
+    width:1px;
+    height:1px;
 
+    opacity:0;
 
-    .toolPanel {
+    pointer-events:none;
+}
 
-        width: 160px;
+.toolbarColor .colorPreview{
+    width:27px;
+    height:27px;
 
-        padding: 8px;
+    border-radius:8px;
 
-        border-radius: 16px;
+    background:#ff0000;
 
-    }
+    border:2px solid rgba(255,255,255,.9);
 
-
-    .toolButton {
-
-        height: 48px;
-
-    }
-
-
-    .toolIcon {
-
-        font-size: 21px;
-
-        line-height: 21px;
-
-    }
-
+    box-shadow:
+        0 2px 8px rgba(0,0,0,.35);
 }
 
 
-/* =========================================================
-   VERY SMALL SCREEN
-========================================================= */
+/* ========================================
+   SIZE CONTROL
+   ======================================== */
 
-@media (
-    max-width: 380px
-) {
+.toolbarSize{
+    width:125px;
+    height:48px;
 
-    .toolPanel {
+    display:flex;
+    align-items:center;
 
-        width: 150px;
+    gap:7px;
 
-        padding: 7px;
+    padding:0 7px;
 
-    }
+    border-radius:11px;
 
+    background:rgba(255,255,255,.07);
 
-    .toolButton {
+    flex:none;
+}
 
-        height: 45px;
+.toolbarSizeLabel{
+    color:#aebbd0;
 
-    }
+    font-family:Arial,sans-serif;
 
+    font-size:9px;
+    font-weight:600;
 
-    .actionButton {
+    white-space:nowrap;
+}
 
-        height: 44px;
+#sizeSlider{
+    flex:1;
 
-    }
+    width:70px;
+    height:22px;
 
+    margin:0;
 
-    .toolLabel,
-    .actionLabel {
+    accent-color:#fff;
 
-        font-size: 8px;
+    cursor:pointer;
+}
 
-    }
+.toolbarSizeValue{
+    min-width:20px;
 
+    text-align:center;
+
+    color:#fff;
+
+    font-size:10px;
+    font-weight:700;
 }
 
 
-/* =========================================================
-   LANDSCAPE TABLET
-========================================================= */
+/* ========================================
+   ACTION BUTTONS
+   ======================================== */
 
-@media (
-    orientation: landscape
-) {
+.toolbarAction{
+    width:50px;
+}
 
-    #toolTray {
+.toolbarAction.danger{
+    background:rgba(180,40,40,.45);
+}
 
-        right: 10px;
-
-    }
-
+.toolbarAction.danger:hover{
+    background:rgba(210,50,50,.55);
 }
 
 
-/* =========================================================
-   SMALL HEIGHT
-========================================================= */
+/* ========================================
+   LIVE DESKTOP PREVIEW
+   ======================================== */
 
-@media (
-    max-height: 600px
-) {
+#screenPreviewContainer{
+    position:fixed;
 
-    .toolPanel {
+    left:50%;
+    top:50%;
 
-        padding: 6px;
+    transform:translate(-50%,-50%);
 
+    width:min(80vw,1000px);
+
+    background:#111;
+
+    border:2px solid #444;
+    border-radius:12px;
+
+    overflow:hidden;
+
+    box-shadow:
+        0 12px 40px rgba(0,0,0,.45);
+
+    z-index:3000;
+
+    display:none;
+
+    pointer-events:none;
+}
+
+.screenPreviewHeader{
+    height:36px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 12px;
+
+    background:#1c1c1c;
+
+    color:#fff;
+
+    font-size:14px;
+    font-weight:600;
+}
+
+.screenStreamStatus{
+    font-size:14px;
+}
+
+#screenPreviewContainer .screenPreviewContent{
+    width:100%;
+
+    aspect-ratio:16/9;
+
+    background:#000;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+#screenPreviewContainer .screenPreview{
+    width:100%;
+    height:100%;
+
+    object-fit:contain;
+
+    display:block;
+}
+
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media(max-width:600px){
+
+    .homeScreen{
+        padding:17px 13px 25px;
+    }
+
+    .homeHeader{
+        margin-bottom:18px;
+    }
+
+    .brandName{
+        font-size:23px;
+    }
+
+    .pcDownloadCard,
+    .connectionCard,
+    .savedConnectionsCard,
+    .pcPreviewCard{
+        border-radius:17px;
     }
 
 
-    .toolButton {
+    /* MOBILE DRAWING TOOLBAR */
 
-        height: 44px;
+    #drawingToolbar{
+        top:8px;
 
+        width:calc(100vw - 16px);
+        max-width:calc(100vw - 16px);
+
+        padding:6px 7px;
+
+        gap:4px;
+
+        border-radius:13px;
+
+        overflow-x:auto;
+
+        scrollbar-width:none;
     }
 
-
-    .actionButton {
-
-        height: 42px;
-
+    #drawingToolbar::-webkit-scrollbar{
+        display:none;
     }
 
-
-    .connectionStatus {
-
-        height: 23px;
-
-        margin-bottom: 5px;
-
+    .toolbarButton,
+    .toolbarAction{
+        width:46px;
+        height:44px;
     }
 
-
-    .separator {
-
-        margin: 5px 0;
-
+    .toolbarIcon{
+        font-size:18px;
+        line-height:18px;
     }
 
+    .toolbarLabel{
+        font-size:7px;
+    }
+
+    .toolbarColor{
+        width:42px;
+        height:44px;
+    }
+
+    .toolbarColor .colorPreview{
+        width:25px;
+        height:25px;
+    }
+
+    .toolbarSize{
+        width:105px;
+        height:44px;
+    }
+
+    #screenPreviewContainer{
+        width:94vw;
+    }
+}
+
+
+/* ========================================
+   VERY SMALL SCREENS
+   ======================================== */
+
+@media(max-width:380px){
+
+    .homeScreen{
+        padding:14px 10px 20px;
+    }
+
+    .connectionMethods{
+        gap:6px;
+    }
+
+    .methodButton{
+        height:65px;
+    }
+
+    .toolbarButton,
+    .toolbarAction{
+        width:42px;
+        height:42px;
+    }
+
+    .toolbarIcon{
+        font-size:17px;
+        line-height:17px;
+    }
+
+    .toolbarLabel{
+        font-size:6.5px;
+    }
+
+    .toolbarSize{
+        width:95px;
+    }
+
+    .toolbarColor{
+        width:40px;
+    }
+
+    .toolbarDivider{
+        margin:0 1px;
+    }
+}
+
+
+/* ========================================
+   LANDSCAPE MODE
+   ======================================== */
+
+@media(orientation:landscape){
+
+    #homeScreen,
+    #setupGuide{
+        display:none;
+    }
+
+    #drawingInterface{
+        display:block;
+    }
+
+    #drawingToolbar{
+        top:10px;
+    }
+}
+
+
+/* ========================================
+   PORTRAIT MODE
+   ======================================== */
+
+@media(orientation:portrait){
+
+    #drawingInterface{
+        display:none;
+    }
+}
+
+
+/* ========================================
+   SMALL HEIGHT DEVICES
+   ======================================== */
+
+@media(max-height:600px){
+
+    #drawingToolbar{
+        top:6px;
+
+        padding:5px 7px;
+    }
+
+    .toolbarButton,
+    .toolbarAction{
+        height:40px;
+    }
+
+    .toolbarColor{
+        height:40px;
+    }
+
+    .toolbarSize{
+        height:40px;
+    }
+
+    .toolbarIcon{
+        font-size:17px;
+        line-height:17px;
+    }
+
+    .toolbarLabel{
+        font-size:7px;
+    }
+
+    .toolbarDivider{
+        height:27px;
+    }
+}
+
+
+/* ========================================
+   HOME SCREEN TOUCH FIX
+   ======================================== */
+
+#homeScreen{
+    pointer-events:auto !important;
+    touch-action:manipulation !important;
+}
+
+#homeScreen button,
+#homeScreen input,
+#homeScreen .methodButton,
+#homeScreen .primaryButton,
+#homeScreen .secondaryButton,
+#homeScreen .localModeCard{
+    pointer-events:auto !important;
+    touch-action:manipulation !important;
 }
