@@ -261,6 +261,7 @@ async def websocket_handler(websocket):
         async for message in websocket:
             try:
                 data = json.loads(message)
+            
                 input_queue.put(data)
             except json.JSONDecodeError:
                 print("Invalid JSON received")
@@ -716,27 +717,40 @@ class ScreenPen(QWidget):
     ):
 
         action = data.get(
-            "action"
+            "action",
+            data.get("event")
         )
-
-        x_ratio = data.get(
+        
+        x_raw = data.get(
             "x",
             0
         )
 
-        y_ratio = data.get(
+        y_raw = data.get(
             "y",
             0
+        )
+        
+        canvas_width = data.get(
+            "canvasWidth",
+            1
+        )
+
+        canvas_height = data.get(
+            "canvasHeight",
+            1
         )
 
         try:
 
-            x = float(
-                x_ratio
+            x = (
+                float(x_raw)
+                / float(canvas_width)
             ) * self.width()
 
-            y = float(
-                y_ratio
+            y = (
+                float(y_raw)
+                / float(canvas_height)
             ) * self.height()
 
         except Exception:

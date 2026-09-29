@@ -1922,7 +1922,11 @@ function sendPointer(
     event,
     extra = {}
 ) {
-
+     console.log(
+        "SEND POINTER:",
+        eventType,
+        position
+    );
     send({
 
         type:
