@@ -514,9 +514,9 @@ function enterLocalMode() {
 
         if (
             oldSocket.readyState ===
-                WebSocket.OPEN ||
+            WebSocket.OPEN ||
             oldSocket.readyState ===
-                WebSocket.CONNECTING
+            WebSocket.CONNECTING
         ) {
 
             try {
@@ -666,77 +666,77 @@ const sizeTitle =
    STAGE 1 UI ELEMENTS
 ======================================================= */
 
-const homeScreen=
+const homeScreen =
     document.getElementById(
         "homeScreen"
     );
 
-const setupGuide=
+const setupGuide =
     document.getElementById(
         "setupGuide"
     );
 
-const drawingInterface=
+const drawingInterface =
     document.getElementById(
         "drawingInterface"
     );
 
-const downloadPCBtn=
+const downloadPCBtn =
     document.getElementById(
         "downloadPCBtn"
     );
 
-const setupBackBtn=
+const setupBackBtn =
     document.getElementById(
         "setupBackBtn"
     );
 
-const setupBackHomeBtn=
+const setupBackHomeBtn =
     document.getElementById(
         "setupBackHomeBtn"
     );
 
-const setupWebsiteBtn=
+const setupWebsiteBtn =
     document.getElementById(
         "setupWebsiteBtn"
     );
 
-const scanQRBtn=
+const scanQRBtn =
     document.getElementById(
         "scanQRBtn"
     );
 
-const manualIPBtn=
+const manualIPBtn =
     document.getElementById(
         "manualIPBtn"
     );
 
-const qrScanPanel=
+const qrScanPanel =
     document.getElementById(
         "qrScanPanel"
     );
 
-const manualIPPanel=
+const manualIPPanel =
     document.getElementById(
         "manualIPPanel"
     );
 
-const homeConnectionStatus=
+const homeConnectionStatus =
     document.getElementById(
         "homeConnectionStatus"
     );
 
-const manageConnectionsBtn=
+const manageConnectionsBtn =
     document.getElementById(
         "manageConnectionsBtn"
     );
 
-const screenPreviewToggleBtn=
+const screenPreviewToggleBtn =
     document.getElementById(
         "screenPreviewToggleBtn"
     );
 
-const settingsBtn=
+const settingsBtn =
     document.getElementById(
         "settingsBtn"
     );
@@ -860,9 +860,9 @@ function connectScreenStream() {
         screenStreamSocket &&
         (
             screenStreamSocket.readyState ===
-                WebSocket.OPEN ||
+            WebSocket.OPEN ||
             screenStreamSocket.readyState ===
-                WebSocket.CONNECTING
+            WebSocket.CONNECTING
         )
     ) {
 
@@ -961,12 +961,12 @@ function connectScreenStream() {
 
 
                 if (screenPreview) {
-    screenPreview.src = newURL;
-}
+                    screenPreview.src = newURL;
+                }
 
-if (drawingScreenPreview) {
-    drawingScreenPreview.src = newURL;
-}
+                if (drawingScreenPreview) {
+                    drawingScreenPreview.src = newURL;
+                }
 
 
                 if (oldURL) {
@@ -1033,7 +1033,7 @@ if (drawingScreenPreview) {
                             (
                                 !screenStreamSocket ||
                                 screenStreamSocket.readyState !==
-                                    WebSocket.OPEN
+                                WebSocket.OPEN
                             )
                         ) {
 
@@ -1267,22 +1267,22 @@ async function setOrientation(mode) {
     }
 }
 
-function showHomeScreen(){
+function showHomeScreen() {
     setOrientation("portrait");
 
-    if(homeScreen){
-        homeScreen.hidden=false;
-        homeScreen.style.display="block";
+    if (homeScreen) {
+        homeScreen.hidden = false;
+        homeScreen.style.display = "block";
     }
 
-    if(setupGuide){
-        setupGuide.hidden=true;
-        setupGuide.style.display="none";
+    if (setupGuide) {
+        setupGuide.hidden = true;
+        setupGuide.style.display = "none";
     }
 
-    if(drawingInterface){
-        drawingInterface.hidden=true;
-        drawingInterface.style.display="none";
+    if (drawingInterface) {
+        drawingInterface.hidden = true;
+        drawingInterface.style.display = "none";
     }
 
     setOrientation("portrait");
@@ -1295,67 +1295,67 @@ function showHomeScreen(){
     );
 }
 
-function showSetupGuide(){
-    if(homeScreen){
-        homeScreen.hidden=true;
-        homeScreen.style.display="none";
+function showSetupGuide() {
+    if (homeScreen) {
+        homeScreen.hidden = true;
+        homeScreen.style.display = "none";
     }
 
-    if(setupGuide){
-        setupGuide.hidden=false;
-        setupGuide.style.display="block";
+    if (setupGuide) {
+        setupGuide.hidden = false;
+        setupGuide.style.display = "block";
     }
 
-    if(drawingInterface){
-        drawingInterface.hidden=true;
-        drawingInterface.style.display="none";
+    if (drawingInterface) {
+        drawingInterface.hidden = true;
+        drawingInterface.style.display = "none";
     }
 
     setOrientation("portrait");
 }
 
-function showDrawingInterface(){
-    if(homeScreen){
-        homeScreen.hidden=true;
-        homeScreen.style.display="none";
+function showDrawingInterface() {
+    if (homeScreen) {
+        homeScreen.hidden = true;
+        homeScreen.style.display = "none";
     }
 
-    if(setupGuide){
-        setupGuide.hidden=true;
-        setupGuide.style.display="none";
+    if (setupGuide) {
+        setupGuide.hidden = true;
+        setupGuide.style.display = "none";
     }
 
-    if(drawingInterface){
-        drawingInterface.hidden=false;
-        drawingInterface.style.display="block";
+    if (drawingInterface) {
+        drawingInterface.hidden = false;
+        drawingInterface.style.display = "block";
     }
 
     setOrientation("landscape");
 
-    setTimeout(()=>{
+    setTimeout(() => {
         resizeCanvas();
         renderCanvas();
-    },100);
+    }, 100);
 }
 
-function updateHomeConnectionState(connected){
-    if(!homeConnectionStatus){
+function updateHomeConnectionState(connected) {
+    if (!homeConnectionStatus) {
         return;
     }
 
-    if(localMode){
-        homeConnectionStatus.innerHTML=
+    if (localMode) {
+        homeConnectionStatus.innerHTML =
             "🔵 <span>Local Mode</span>";
         return;
     }
 
-    if(connected){
-        homeConnectionStatus.innerHTML=
-            "🟢 <span>Connected to "+screenPenIP+"</span>";
+    if (connected) {
+        homeConnectionStatus.innerHTML =
+            "🟢 <span>Connected to " + screenPenIP + "</span>";
         return;
     }
 
-    homeConnectionStatus.innerHTML=
+    homeConnectionStatus.innerHTML =
         "⚪ <span>Not Connected</span>";
 }
 
@@ -1363,8 +1363,8 @@ function updateHomeConnectionState(connected){
 function updateHomeConnectionMessage(
     text,
     icon
-){
-    if(!homeConnectionStatus){
+) {
+    if (!homeConnectionStatus) {
         return;
     }
 
@@ -1375,44 +1375,44 @@ function updateHomeConnectionMessage(
         "</span>";
 }
 
-function openManualIPPanel(){
-    if(qrScanPanel){
-        qrScanPanel.style.display="none";
+function openManualIPPanel() {
+    if (qrScanPanel) {
+        qrScanPanel.style.display = "none";
     }
 
-    if(manualIPPanel){
-        manualIPPanel.style.display="block";
+    if (manualIPPanel) {
+        manualIPPanel.style.display = "block";
     }
 
-    if(scanQRBtn){
+    if (scanQRBtn) {
         scanQRBtn.classList.remove("active");
     }
 
-    if(manualIPBtn){
+    if (manualIPBtn) {
         manualIPBtn.classList.add("active");
     }
 }
 
-function openQRPanel(){
-    if(qrScanPanel){
-        qrScanPanel.style.display="block";
+function openQRPanel() {
+    if (qrScanPanel) {
+        qrScanPanel.style.display = "block";
     }
 
-    if(manualIPPanel){
-        manualIPPanel.style.display="none";
+    if (manualIPPanel) {
+        manualIPPanel.style.display = "none";
     }
 
-    if(scanQRBtn){
+    if (scanQRBtn) {
         scanQRBtn.classList.add("active");
     }
 
-    if(manualIPBtn){
+    if (manualIPBtn) {
         manualIPBtn.classList.remove("active");
     }
 }
 
-async function scanScreenPenQR(){
-    try{
+async function scanScreenPenQR() {
+    try {
         console.log("Starting ScreenPen QR scanner...");
 
         const result =
@@ -1427,7 +1427,7 @@ async function scanScreenPenQR(){
 
         const scannedValue =
             result &&
-            result.ScanResult
+                result.ScanResult
                 ? result.ScanResult.trim()
                 : "";
 
@@ -1436,7 +1436,7 @@ async function scanScreenPenQR(){
             scannedValue
         );
 
-        if(!scannedValue){
+        if (!scannedValue) {
             console.log("No QR code scanned.");
 
             updateConnectionStatus(
@@ -1454,10 +1454,10 @@ async function scanScreenPenQR(){
 
         let parsedURL;
 
-        try{
+        try {
             parsedURL =
                 new URL(scannedValue);
-        }catch(error){
+        } catch (error) {
             console.error(
                 "Invalid QR data:",
                 scannedValue
@@ -1476,10 +1476,10 @@ async function scanScreenPenQR(){
             return;
         }
 
-        if(
+        if (
             parsedURL.protocol !==
             "screenpen:"
-        ){
+        ) {
             console.error(
                 "Not a ScreenPen QR code."
             );
@@ -1497,10 +1497,10 @@ async function scanScreenPenQR(){
             return;
         }
 
-        if(
+        if (
             parsedURL.hostname !==
             "connect"
-        ){
+        ) {
             console.error(
                 "Invalid ScreenPen QR host."
             );
@@ -1551,10 +1551,10 @@ async function scanScreenPenQR(){
         const ipv4Pattern =
             /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 
-        if(
+        if (
             !host ||
             !ipv4Pattern.test(host)
-        ){
+        ) {
             updateConnectionStatus(
                 "Invalid PC IP",
                 "🔴"
@@ -1568,10 +1568,10 @@ async function scanScreenPenQR(){
             return;
         }
 
-        if(
+        if (
             controlPort &&
             controlPort !== "8765"
-        ){
+        ) {
             updateConnectionStatus(
                 "Invalid Control Port",
                 "🔴"
@@ -1585,10 +1585,10 @@ async function scanScreenPenQR(){
             return;
         }
 
-        if(
+        if (
             screenPort &&
             screenPort !== "8766"
-        ){
+        ) {
             updateConnectionStatus(
                 "Invalid Screen Port",
                 "🔴"
@@ -1612,7 +1612,7 @@ async function scanScreenPenQR(){
             host
         );
 
-        if(pcIPInput){
+        if (pcIPInput) {
             pcIPInput.value =
                 host;
         }
@@ -1636,7 +1636,7 @@ async function scanScreenPenQR(){
             host
         );
 
-    }catch(error){
+    } catch (error) {
         console.error(
             "QR scanner error:",
             error
@@ -5815,9 +5815,9 @@ exitBtn.addEventListener(
 
             if (
                 oldSocket.readyState ===
-                    WebSocket.OPEN ||
+                WebSocket.OPEN ||
                 oldSocket.readyState ===
-                    WebSocket.CONNECTING
+                WebSocket.CONNECTING
             ) {
 
                 try {
@@ -5850,10 +5850,10 @@ exitBtn.addEventListener(
             "🔴"
         );
 
-    if (connectionStatus) {
-    connectionStatus.innerHTML =
-        "⚪ <span>Not Connected</span>";
-}
+        if (connectionStatus) {
+            connectionStatus.innerHTML =
+                "⚪ <span>Not Connected</span>";
+        }
 
         // Return to Home
         showHomeScreen();
@@ -5964,10 +5964,10 @@ if (
    STAGE 1 HOME BUTTONS
 ======================================================= */
 
-if(downloadPCBtn){
+if (downloadPCBtn) {
     downloadPCBtn.addEventListener(
         "click",
-        event=>{
+        event => {
             event.preventDefault();
             event.stopPropagation();
             showSetupGuide();
@@ -5975,30 +5975,30 @@ if(downloadPCBtn){
     );
 }
 
-if(setupBackBtn){
+if (setupBackBtn) {
     setupBackBtn.addEventListener(
         "click",
-        event=>{
+        event => {
             event.preventDefault();
             showHomeScreen();
         }
     );
 }
 
-if(setupBackHomeBtn){
+if (setupBackHomeBtn) {
     setupBackHomeBtn.addEventListener(
         "click",
-        event=>{
+        event => {
             event.preventDefault();
             showHomeScreen();
         }
     );
 }
 
-if(scanQRBtn){
+if (scanQRBtn) {
     scanQRBtn.addEventListener(
         "click",
-        async event=>{
+        async event => {
             event.preventDefault();
             event.stopPropagation();
 
@@ -6009,14 +6009,14 @@ if(scanQRBtn){
     );
 }
 
-if(manualIPBtn){
+if (manualIPBtn) {
     manualIPBtn.addEventListener(
         "click",
-        event=>{
+        event => {
             event.preventDefault();
             openManualIPPanel();
 
-            if(pcIPInput){
+            if (pcIPInput) {
                 pcIPInput.focus();
             }
         }
@@ -6028,7 +6028,7 @@ if(manualIPBtn){
    INITIALIZATION
 ======================================================= */
 
-function initialize(){
+function initialize() {
 
     /*
     Prevent browser scrolling/zooming from interfering
@@ -6088,21 +6088,21 @@ function initialize(){
     The user must press Connect.
     */
 
-    if(screenPenIP){
+    if (screenPenIP) {
 
         console.log(
             "Saved ScreenPen PC IP:",
             screenPenIP
         );
 
-        if(pcIPInput){
+        if (pcIPInput) {
 
             pcIPInput.value =
                 screenPenIP;
 
         }
 
-    }else{
+    } else {
 
         console.log(
             "No saved ScreenPen PC IP."
@@ -6115,10 +6115,10 @@ function initialize(){
     Initial connection status.
     */
 
-   if (connectionStatus) {
-    connectionStatus.innerHTML =
-        "🔴 <span>Not Connected</span>";
-}
+    if (connectionStatus) {
+        connectionStatus.innerHTML =
+            "🔴 <span>Not Connected</span>";
+    }
     /*
     Make sure the Home screen shows
     the correct disconnected state.
