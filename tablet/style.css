@@ -1,1327 +1,2283 @@
-*{
-    box-sizing:border-box;
+* {
+    box-sizing: border-box;
 }
+
 
 html,
-body{
-    margin:0;
-    padding:0;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    background:#080b12;
-    color:#fff;
-    font-family:Arial,sans-serif;
-    user-select:none;
-    -webkit-user-select:none;
-    -webkit-touch-callout:none;
+
+body {
+
+    margin: 0;
+
+    padding: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #080b12;
+
+    color: #fff;
+
+    font-family: Arial, sans-serif;
+
+    user-select: none;
+
+    -webkit-user-select: none;
+
+    -webkit-touch-callout: none;
+
 }
 
+
+
 button,
+
 input,
+
 .methodButton,
+
 .connectionMethods,
-.homeCard{
-    touch-action:manipulation;
+
+.homeCard {
+
+    touch-action: manipulation;
+
 }
+
+
 
 button,
-input{
-    font-family:inherit;
+
+input {
+
+    font-family: inherit;
+
 }
 
-button{
-    -webkit-tap-highlight-color:transparent;
+
+
+button {
+
+    -webkit-tap-highlight-color: transparent;
+
 }
 
-button:active{
-    transform:scale(.97);
+
+
+button:active {
+
+    transform: scale(.97);
+
 }
 
-.hidden{
-    display:none!important;
+
+
+.hidden {
+
+    display: none !important;
+
 }
+
+
+
 
 
 /* ========================================
-   HOME SCREEN
-   ======================================== */
 
-.homeScreen{
-    position:fixed;
-    inset:0;
-    z-index:5000;
-    overflow-y:auto;
-    overflow-x:hidden;
+   HOME SCREEN
+
+   ======================================== */
+
+
+
+.homeScreen {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 5000;
+
+    overflow-y: auto;
+
+    overflow-x: hidden;
+
     background:
-        radial-gradient(
-            circle at 50% -10%,
+
+        radial-gradient(circle at 50% -10%,
+
             #172d55 0,
+
             #0b1220 38%,
-            #070a10 75%
-        );
-    padding:22px 18px 30px;
+
+            #070a10 75%);
+
+    padding: 22px 18px 30px;
+
 }
 
-.homeHeader{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    max-width:620px;
-    margin:0 auto 24px;
+
+
+.homeHeader {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    max-width: 620px;
+
+    margin: 0 auto 24px;
+
 }
 
-.brand{
-    display:flex;
-    align-items:center;
-    gap:12px;
+
+
+.brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
 }
 
-.brandIcon{
-    width:48px;
-    height:48px;
-    border-radius:14px;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
 
-    background:linear-gradient(
-        145deg,
-        #2589ff,
-        #1355c5
-    );
+.brandIcon {
+
+    width: 48px;
+
+    height: 48px;
+
+    border-radius: 14px;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+
+    background: linear-gradient(145deg,
+
+            #2589ff,
+
+            #1355c5);
+
+
 
     box-shadow:
-        0 8px 25px rgba(25,112,255,.3);
 
-    font-size:24px;
+        0 8px 25px rgba(25, 112, 255, .3);
+
+
+
+    font-size: 24px;
+
 }
 
-.brandName{
-    font-size:26px;
-    font-weight:800;
-    letter-spacing:-.8px;
+
+
+.brandName {
+
+    font-size: 26px;
+
+    font-weight: 800;
+
+    letter-spacing: -.8px;
+
 }
 
-.brandName span{
-    color:#4da3ff;
+
+
+.brandName span {
+
+    color: #4da3ff;
+
 }
 
-.brandTagline{
-    margin-top:2px;
-    color:#8190a8;
-    font-size:11px;
-    letter-spacing:.4px;
+
+
+.brandTagline {
+
+    margin-top: 2px;
+
+    color: #8190a8;
+
+    font-size: 11px;
+
+    letter-spacing: .4px;
+
 }
+
+
 
 .iconButton,
-.smallIconButton{
-    border:1px solid rgba(255,255,255,.1);
-    background:rgba(255,255,255,.06);
-    color:#fff;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+.smallIconButton {
 
-    cursor:pointer;
+    border: 1px solid rgba(255, 255, 255, .1);
+
+    background: rgba(255, 255, 255, .06);
+
+    color: #fff;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+
+    cursor: pointer;
+
 }
 
-.iconButton{
-    width:42px;
-    height:42px;
-    border-radius:13px;
-    font-size:20px;
+
+
+.iconButton {
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 13px;
+
+    font-size: 20px;
+
 }
 
-.smallIconButton{
-    width:30px;
-    height:30px;
-    border-radius:9px;
-    font-size:14px;
+
+
+.smallIconButton {
+
+    width: 30px;
+
+    height: 30px;
+
+    border-radius: 9px;
+
+    font-size: 14px;
+
 }
+
+
 
 .homeCard,
-.statusCard{
-    width:100%;
-    max-width:620px;
-    margin:0 auto 14px;
 
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:20px;
+.statusCard {
+
+    width: 100%;
+
+    max-width: 620px;
+
+    margin: 0 auto 14px;
+
+
+
+    border: 1px solid rgba(255, 255, 255, .08);
+
+    border-radius: 20px;
+
+
 
     background:
-        linear-gradient(
-            145deg,
-            rgba(22,31,48,.96),
-            rgba(12,18,29,.96)
-        );
+
+        linear-gradient(145deg,
+
+            rgba(22, 31, 48, .96),
+
+            rgba(12, 18, 29, .96));
+
+
 
     box-shadow:
-        0 12px 35px rgba(0,0,0,.22);
+
+        0 12px 35px rgba(0, 0, 0, .22);
+
 }
 
-.pcDownloadCard{
-    padding:18px;
 
-    display:grid;
-    grid-template-columns:46px 1fr;
-    gap:13px;
-    align-items:center;
+
+.pcDownloadCard {
+
+    padding: 18px;
+
+
+
+    display: grid;
+
+    grid-template-columns: 46px 1fr;
+
+    gap: 13px;
+
+    align-items: center;
+
 }
 
-.cardIcon{
-    width:44px;
-    height:44px;
-    border-radius:13px;
 
-    background:rgba(54,139,255,.12);
-    color:#55a7ff;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+.cardIcon {
 
-    font-size:21px;
-    flex:none;
+    width: 44px;
+
+    height: 44px;
+
+    border-radius: 13px;
+
+
+
+    background: rgba(54, 139, 255, .12);
+
+    color: #55a7ff;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+
+    font-size: 21px;
+
+    flex: none;
+
 }
 
-.windowsIcon{
-    background:linear-gradient(
-        145deg,
-        #1877ed,
-        #1452a9
-    );
-    color:#fff;
+
+
+.windowsIcon {
+
+    background: linear-gradient(145deg,
+
+            #1877ed,
+
+            #1452a9);
+
+    color: #fff;
+
 }
 
-.cardContent{
-    min-width:0;
+
+
+.cardContent {
+
+    min-width: 0;
+
 }
+
+
 
 .cardContent h2,
-.cardHeader h2{
-    margin:0;
-    color:#fff;
-    font-size:16px;
+
+.cardHeader h2 {
+
+    margin: 0;
+
+    color: #fff;
+
+    font-size: 16px;
+
 }
+
+
 
 .cardContent p,
-.cardHeader p{
-    margin:5px 0 0;
-    color:#8491a6;
-    font-size:11px;
-    line-height:1.45;
+
+.cardHeader p {
+
+    margin: 5px 0 0;
+
+    color: #8491a6;
+
+    font-size: 11px;
+
+    line-height: 1.45;
+
 }
 
-.downloadButton{
-    grid-column:1/-1;
+
+
+.downloadButton {
+
+    grid-column: 1/-1;
+
 }
+
+
 
 .primaryButton,
-.secondaryButton{
-    border:none;
-    border-radius:12px;
-    min-height:44px;
-    padding:0 16px;
 
-    cursor:pointer;
+.secondaryButton {
 
-    font-size:13px;
-    font-weight:700;
+    border: none;
+
+    border-radius: 12px;
+
+    min-height: 44px;
+
+    padding: 0 16px;
+
+
+
+    cursor: pointer;
+
+
+
+    font-size: 13px;
+
+    font-weight: 700;
+
 }
 
-.primaryButton{
-    background:linear-gradient(
-        135deg,
-        #2f91ff,
-        #1760d1
-    );
 
-    color:#fff;
+
+.primaryButton {
+
+    background: linear-gradient(135deg,
+
+            #2f91ff,
+
+            #1760d1);
+
+
+
+    color: #fff;
+
+
 
     box-shadow:
-        0 7px 20px rgba(24,108,230,.25);
+
+        0 7px 20px rgba(24, 108, 230, .25);
+
 }
 
-.secondaryButton{
-    background:rgba(255,255,255,.07);
-    border:1px solid rgba(255,255,255,.08);
-    color:#cdd7e8;
+
+
+.secondaryButton {
+
+    background: rgba(255, 255, 255, .07);
+
+    border: 1px solid rgba(255, 255, 255, .08);
+
+    color: #cdd7e8;
+
 }
 
-.connectionCard{
-    padding:18px;
+
+
+.connectionCard {
+
+    padding: 18px;
+
 }
 
-.cardHeader{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
 
-    gap:12px;
 
-    margin-bottom:16px;
+.cardHeader {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+
+
+    gap: 12px;
+
+
+
+    margin-bottom: 16px;
+
 }
 
-.cardTitle{
-    display:flex;
-    align-items:center;
-    gap:11px;
-    min-width:0;
+
+
+.cardTitle {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+
+    min-width: 0;
+
 }
 
-.cardTitle h2{
-    font-size:15px;
+
+
+.cardTitle h2 {
+
+    font-size: 15px;
+
 }
 
-.connectionMethods{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:9px;
 
-    margin-bottom:14px;
+
+.connectionMethods {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 9px;
+
+
+
+    margin-bottom: 14px;
+
 }
 
-.methodButton{
-    height:72px;
 
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:14px;
 
-    background:rgba(255,255,255,.045);
-    color:#aebbd0;
+.methodButton {
 
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
+    height: 72px;
 
-    gap:6px;
 
-    cursor:pointer;
+
+    border: 1px solid rgba(255, 255, 255, .08);
+
+    border-radius: 14px;
+
+
+
+    background: rgba(255, 255, 255, .045);
+
+    color: #aebbd0;
+
+
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+
+    gap: 6px;
+
+
+
+    cursor: pointer;
+
 }
 
-.methodButton span{
-    font-size:23px;
+
+
+.methodButton span {
+
+    font-size: 23px;
+
 }
 
-.methodButton strong{
-    font-size:11px;
+
+
+.methodButton strong {
+
+    font-size: 11px;
+
 }
 
-.methodButton.active{
-    border-color:rgba(55,146,255,.55);
 
-    background:rgba(35,120,235,.12);
 
-    color:#fff;
+.methodButton.active {
+
+    border-color: rgba(55, 146, 255, .55);
+
+
+
+    background: rgba(35, 120, 235, .12);
+
+
+
+    color: #fff;
+
+
 
     box-shadow:
-        inset 0 0 0 1px rgba(55,146,255,.12);
+
+        inset 0 0 0 1px rgba(55, 146, 255, .12);
+
 }
 
-.qrScanPanel{
-    display:none;
+
+
+.qrScanPanel {
+
+    display: none;
+
 }
 
-.qrPlaceholder{
-    min-height:170px;
 
-    border:1px dashed rgba(76,158,255,.4);
-    border-radius:16px;
 
-    background:rgba(24,101,190,.06);
+.qrPlaceholder {
 
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
+    min-height: 170px;
 
-    text-align:center;
 
-    padding:20px;
+
+    border: 1px dashed rgba(76, 158, 255, .4);
+
+    border-radius: 16px;
+
+
+
+    background: rgba(24, 101, 190, .06);
+
+
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+
+    text-align: center;
+
+
+
+    padding: 20px;
+
 }
 
-.qrPlaceholderIcon{
-    width:70px;
-    height:70px;
 
-    border:2px solid #459cff;
-    border-radius:12px;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+.qrPlaceholderIcon {
 
-    color:#55a7ff;
-    font-size:42px;
+    width: 70px;
 
-    margin-bottom:12px;
+    height: 70px;
+
+
+
+    border: 2px solid #459cff;
+
+    border-radius: 12px;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+
+    color: #55a7ff;
+
+    font-size: 42px;
+
+
+
+    margin-bottom: 12px;
+
 }
 
-.qrPlaceholder strong{
-    font-size:13px;
+
+
+.qrPlaceholder strong {
+
+    font-size: 13px;
+
 }
 
-.qrPlaceholder span{
-    max-width:250px;
 
-    margin-top:6px;
 
-    color:#7f8ca1;
-    font-size:10px;
-    line-height:1.4;
+.qrPlaceholder span {
+
+    max-width: 250px;
+
+
+
+    margin-top: 6px;
+
+
+
+    color: #7f8ca1;
+
+    font-size: 10px;
+
+    line-height: 1.4;
+
 }
 
-.orDivider{
-    height:20px;
 
-    display:flex;
-    align-items:center;
 
-    gap:10px;
+.orDivider {
 
-    color:#5f6c81;
-    font-size:9px;
+    height: 20px;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+
+
+    gap: 10px;
+
+
+
+    color: #5f6c81;
+
+    font-size: 9px;
+
 }
+
+
 
 .orDivider:before,
-.orDivider:after{
-    content:"";
 
-    height:1px;
-    flex:1;
+.orDivider:after {
 
-    background:rgba(255,255,255,.08);
+    content: "";
+
+
+
+    height: 1px;
+
+    flex: 1;
+
+
+
+    background: rgba(255, 255, 255, .08);
+
 }
 
-.manualIPPanel label{
-    display:block;
 
-    color:#9aa7bb;
 
-    font-size:10px;
+.manualIPPanel label {
 
-    margin:3px 0 7px;
+    display: block;
+
+
+
+    color: #9aa7bb;
+
+
+
+    font-size: 10px;
+
+
+
+    margin: 3px 0 7px;
+
 }
 
-.pcIPInput{
-    width:100%;
-    height:45px;
 
-    border:1px solid rgba(255,255,255,.1);
-    border-radius:11px;
 
-    background:#080e18;
-    color:#fff;
+.pcIPInput {
 
-    padding:0 13px;
+    width: 100%;
 
-    outline:none;
+    height: 45px;
 
-    font-size:13px;
+
+
+    border: 1px solid rgba(255, 255, 255, .1);
+
+    border-radius: 11px;
+
+
+
+    background: #080e18;
+
+    color: #fff;
+
+
+
+    padding: 0 13px;
+
+
+
+    outline: none;
+
+
+
+    font-size: 13px;
+
 }
 
-.pcIPInput:focus{
-    border-color:#348fff;
+
+
+.pcIPInput:focus {
+
+    border-color: #348fff;
+
+
 
     box-shadow:
-        0 0 0 3px rgba(52,143,255,.1);
+
+        0 0 0 3px rgba(52, 143, 255, .1);
+
 }
 
-.connectionButton{
-    width:100%;
-    margin-top:10px;
+
+
+.connectionButton {
+
+    width: 100%;
+
+    margin-top: 10px;
+
 }
 
-.localModeCard{
-    padding:15px 17px;
 
-    display:flex;
-    align-items:center;
 
-    gap:12px;
+.localModeCard {
 
-    color:#fff;
-    text-align:left;
+    padding: 15px 17px;
 
-    cursor:pointer;
+
+
+    display: flex;
+
+    align-items: center;
+
+
+
+    gap: 12px;
+
+
+
+    color: #fff;
+
+    text-align: left;
+
+
+
+    cursor: pointer;
+
 }
 
-.localModeCard .cardContent{
-    flex:1;
+
+
+.localModeCard .cardContent {
+
+    flex: 1;
+
 }
 
-.localModeCard strong{
-    display:block;
-    font-size:14px;
+
+
+.localModeCard strong {
+
+    display: block;
+
+    font-size: 14px;
+
 }
 
-.localModeCard small{
-    display:block;
 
-    margin-top:4px;
 
-    color:#7f8ca1;
-    font-size:10px;
+.localModeCard small {
+
+    display: block;
+
+
+
+    margin-top: 4px;
+
+
+
+    color: #7f8ca1;
+
+    font-size: 10px;
+
 }
 
-.cardArrow{
-    color:#68809f;
-    font-size:27px;
+
+
+.cardArrow {
+
+    color: #68809f;
+
+    font-size: 27px;
+
 }
 
-.statusCard{
-    padding:13px 15px;
+
+
+.statusCard {
+
+    padding: 13px 15px;
+
 }
 
-.homeConnectionStatus{
-    display:flex;
-    align-items:center;
-    gap:11px;
+
+
+.homeConnectionStatus {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+
 }
 
-.statusDot{
-    width:9px;
-    height:9px;
 
-    border-radius:50%;
 
-    background:#657187;
+.statusDot {
+
+    width: 9px;
+
+    height: 9px;
+
+
+
+    border-radius: 50%;
+
+
+
+    background: #657187;
+
+
 
     box-shadow:
-        0 0 10px rgba(101,113,135,.4);
+
+        0 0 10px rgba(101, 113, 135, .4);
+
 }
 
-.homeConnectionStatus strong{
-    display:block;
-    font-size:11px;
+
+
+.homeConnectionStatus strong {
+
+    display: block;
+
+    font-size: 11px;
+
 }
 
-.homeConnectionStatus small{
-    display:block;
 
-    color:#6f7d92;
 
-    font-size:9px;
+.homeConnectionStatus small {
 
-    margin-top:3px;
+    display: block;
+
+
+
+    color: #6f7d92;
+
+
+
+    font-size: 9px;
+
+
+
+    margin-top: 3px;
+
 }
+
+
+
+.savedConnectionItem {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+
+
+    padding: 12px 14px;
+
+
+
+    margin-top: 8px;
+
+
+
+    border: 1px solid rgba(255, 255, 255, .08);
+
+    border-radius: 12px;
+
+
+
+    background: rgba(255, 255, 255, .04);
+
+}
+
+
+
+
+
+.savedConnectionInfo {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+
+
+    min-width: 0;
+
+}
+
+
+
+
+
+.savedConnectionIcon {
+
+    width: 36px;
+
+    height: 36px;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+
+    border-radius: 9px;
+
+
+
+    background: rgba(255, 255, 255, .07);
+
+
+
+    flex: none;
+
+}
+
+
+
+
+
+.savedConnectionInfo div {
+
+    min-width: 0;
+
+}
+
+
+
+
+
+.savedConnectionInfo strong {
+
+    display: block;
+
+
+
+    font-size: 14px;
+
+}
+
+
+
+
+
+.savedConnectionInfo small {
+
+    display: block;
+
+
+
+    margin-top: 3px;
+
+
+
+    font-size: 12px;
+
+
+
+    opacity: .6;
+
+}
+
+
+
+
+
+.savedConnectionActions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+
+
+    flex: none;
+
+}
+
+
+
+
+
+.savedConnectButton {
+
+    padding: 7px 11px;
+
+
+
+    border: 0;
+
+    border-radius: 8px;
+
+
+
+    background: rgba(255, 255, 255, .08);
+
+
+
+    color: #fff;
+
+
+
+    cursor: pointer;
+
+}
+
+
+
+
+
+.savedConnectButton:hover {
+
+    background: rgba(255, 255, 255, .14);
+
+}
+
+
+
+
+
+.savedDeleteButton {
+
+    width: 30px;
+
+    height: 30px;
+
+
+
+    padding: 0;
+
+
+
+    border: 0;
+
+    border-radius: 8px;
+
+
+
+    background: rgba(255, 255, 255, .05);
+
+
+
+    color: #fff;
+
+
+
+    font-size: 18px;
+
+
+
+    cursor: pointer;
+
+}
+
+
+
+
+
+.savedDeleteButton:hover {
+
+    background: rgba(255, 255, 255, .12);
+
+}
+
+
 
 .savedConnectionsCard,
-.pcPreviewCard{
-    padding:16px;
+
+.pcPreviewCard {
+
+    padding: 16px;
+
 }
 
-.savedConnectionsList{
-    min-height:55px;
+
+
+.savedConnectionsList {
+
+    min-height: 55px;
+
 }
 
-.savedConnectionEmpty{
-    display:flex;
-    align-items:center;
 
-    gap:11px;
 
-    padding:11px;
+.savedConnectionEmpty {
 
-    border-radius:12px;
+    display: flex;
 
-    background:rgba(255,255,255,.035);
+    align-items: center;
 
-    color:#6f7d92;
+
+
+    gap: 11px;
+
+
+
+    padding: 11px;
+
+
+
+    border-radius: 12px;
+
+
+
+    background: rgba(255, 255, 255, .035);
+
+
+
+    color: #6f7d92;
+
 }
 
-.savedConnectionEmpty>span{
-    font-size:18px;
+
+
+.savedConnectionEmpty>span {
+
+    font-size: 18px;
+
 }
 
-.savedConnectionEmpty strong{
-    display:block;
 
-    color:#a9b5c8;
 
-    font-size:10px;
+.savedConnectionEmpty strong {
+
+    display: block;
+
+
+
+    color: #a9b5c8;
+
+
+
+    font-size: 10px;
+
 }
 
-.savedConnectionEmpty small{
-    display:block;
 
-    margin-top:3px;
 
-    font-size:9px;
+.savedConnectionEmpty small {
+
+    display: block;
+
+
+
+    margin-top: 3px;
+
+
+
+    font-size: 9px;
+
 }
 
-.screenPreviewContent{
-    width:100%;
 
-    aspect-ratio:16/9;
 
-    background:#05070b;
+.screenPreviewContent {
 
-    border-radius:12px;
+    width: 100%;
 
-    overflow:hidden;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+
+    aspect-ratio: 16/9;
+
+
+
+    background: #05070b;
+
+
+
+    border-radius: 12px;
+
+
+
+    overflow: hidden;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
 }
 
-.screenPreview{
-    width:100%;
-    height:100%;
 
-    object-fit:contain;
 
-    display:block;
+.screenPreview {
+
+    width: 100%;
+
+    height: 100%;
+
+
+
+    object-fit: contain;
+
+
+
+    display: block;
+
 }
 
-.pcPreviewCard .screenPreview{
-    min-height:80px;
+
+
+.pcPreviewCard .screenPreview {
+
+    min-height: 80px;
+
 }
 
-.screenPreviewToggle{
-    width:100%;
-    margin-top:10px;
+
+
+.screenPreviewToggle {
+
+    width: 100%;
+
+    margin-top: 10px;
+
 }
+
+
+
 
 
 /* ========================================
-   SETUP GUIDE
-   ======================================== */
 
-.setupGuide{
-    position:fixed;
-    inset:0;
+   SETUP GUIDE
 
-    z-index:6000;
+   ======================================== */
 
-    overflow-y:auto;
+
+
+.setupGuide {
+
+    position: fixed;
+
+    inset: 0;
+
+
+
+    z-index: 6000;
+
+
+
+    overflow-y: auto;
+
+
 
     background:
-        radial-gradient(
-            circle at 50% -10%,
+
+        radial-gradient(circle at 50% -10%,
+
             #172d55 0,
+
             #0b1220 38%,
-            #070a10 75%
-        );
 
-    padding:18px;
+            #070a10 75%);
+
+
+
+    padding: 18px;
+
 }
 
-.setupHeader{
-    max-width:620px;
 
-    margin:0 auto 25px;
 
-    display:flex;
-    align-items:center;
+.setupHeader {
 
-    gap:13px;
+    max-width: 620px;
+
+
+
+    margin: 0 auto 25px;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+
+
+    gap: 13px;
+
 }
 
-.setupHeader h1{
-    margin:0;
-    font-size:20px;
+
+
+.setupHeader h1 {
+
+    margin: 0;
+
+    font-size: 20px;
+
 }
 
-.setupHeader p{
-    margin:5px 0 0;
 
-    color:#7f8ca1;
 
-    font-size:10px;
+.setupHeader p {
+
+    margin: 5px 0 0;
+
+
+
+    color: #7f8ca1;
+
+
+
+    font-size: 10px;
+
 }
 
-.setupContent{
-    max-width:620px;
 
-    margin:0 auto;
 
-    padding-bottom:25px;
+.setupContent {
+
+    max-width: 620px;
+
+
+
+    margin: 0 auto;
+
+
+
+    padding-bottom: 25px;
+
 }
 
-.setupIntro{
-    text-align:center;
 
-    padding:8px 10px 20px;
+
+.setupIntro {
+
+    text-align: center;
+
+
+
+    padding: 8px 10px 20px;
+
 }
 
-.setupIcon{
-    width:68px;
-    height:68px;
 
-    border-radius:20px;
 
-    margin:0 auto 13px;
+.setupIcon {
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    width: 68px;
+
+    height: 68px;
+
+
+
+    border-radius: 20px;
+
+
+
+    margin: 0 auto 13px;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
 
     background:
-        linear-gradient(
-            145deg,
-            #268aff,
-            #1455b9
-        );
 
-    font-size:31px;
+        linear-gradient(145deg,
+
+            #268aff,
+
+            #1455b9);
+
+
+
+    font-size: 31px;
+
+
 
     box-shadow:
-        0 10px 30px rgba(30,120,255,.25);
+
+        0 10px 30px rgba(30, 120, 255, .25);
+
 }
 
-.setupIntro h2{
-    margin:0;
-    font-size:17px;
+
+
+.setupIntro h2 {
+
+    margin: 0;
+
+    font-size: 17px;
+
 }
 
-.setupIntro p{
-    margin:7px auto 0;
 
-    max-width:330px;
 
-    color:#7d8a9f;
+.setupIntro p {
 
-    font-size:10px;
-    line-height:1.5;
+    margin: 7px auto 0;
+
+
+
+    max-width: 330px;
+
+
+
+    color: #7d8a9f;
+
+
+
+    font-size: 10px;
+
+    line-height: 1.5;
+
 }
 
-.setupStep{
-    display:flex;
 
-    gap:13px;
 
-    margin-bottom:10px;
+.setupStep {
 
-    padding:15px;
+    display: flex;
 
-    border:1px solid rgba(255,255,255,.07);
-    border-radius:16px;
 
-    background:rgba(18,27,42,.9);
+
+    gap: 13px;
+
+
+
+    margin-bottom: 10px;
+
+
+
+    padding: 15px;
+
+
+
+    border: 1px solid rgba(255, 255, 255, .07);
+
+    border-radius: 16px;
+
+
+
+    background: rgba(18, 27, 42, .9);
+
 }
 
-.stepNumber{
-    width:30px;
-    height:30px;
 
-    border-radius:10px;
 
-    flex:none;
+.stepNumber {
 
-    background:rgba(49,143,255,.14);
-    color:#54a4ff;
+    width: 30px;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    height: 30px;
 
-    font-size:12px;
-    font-weight:800;
+
+
+    border-radius: 10px;
+
+
+
+    flex: none;
+
+
+
+    background: rgba(49, 143, 255, .14);
+
+    color: #54a4ff;
+
+
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+
+
+    font-size: 12px;
+
+    font-weight: 800;
+
 }
 
-.stepContent h3{
-    margin:1px 0 5px;
-    font-size:13px;
+
+
+.stepContent h3 {
+
+    margin: 1px 0 5px;
+
+    font-size: 13px;
+
 }
 
-.stepContent p{
-    margin:0;
 
-    color:#7f8ca1;
 
-    font-size:10px;
-    line-height:1.5;
+.stepContent p {
+
+    margin: 0;
+
+
+
+    color: #7f8ca1;
+
+
+
+    font-size: 10px;
+
+    line-height: 1.5;
+
 }
+
+
 
 .setupContent>.primaryButton,
-.setupContent>.secondaryButton{
-    width:100%;
-    margin-top:8px;
+
+.setupContent>.secondaryButton {
+
+    width: 100%;
+
+    margin-top: 8px;
+
 }
+
+
+
 
 
 /* ========================================
-   DRAWING INTERFACE
-   ======================================== */
 
-#drawingInterface{
-    position:fixed;
-    inset:0;
+   DRAWING INTERFACE
 
-    z-index:4000;
+   ======================================== */
 
-    background:transparent;
+
+
+#drawingInterface {
+
+    position: fixed;
+
+    inset: 0;
+
+
+
+    z-index: 4000;
+
+
+
+    background: transparent;
+
 }
 
-#drawingCanvas{
-    position:fixed;
 
-    left:0;
-    top:0;
 
-    width:100vw;
-    height:100vh;
+#drawingCanvas {
 
-    display:block;
+    position: fixed;
 
-    background:transparent;
 
-    z-index:10;
 
-    touch-action:none;
+    left: 0;
+
+    top: 0;
+
+
+
+    width: 100vw;
+
+    height: 100vh;
+
+
+
+    display: block;
+
+
+
+    background: transparent;
+
+
+
+    z-index: 10;
+
+
+
+    touch-action: none;
+
 }
+
+
+
 
 
 /* ========================================
-   HORIZONTAL DRAWING TOOLBAR
+   DRAWING INTERFACE TOOLBAR
    ======================================== */
 
-#drawingToolbar{
-    position:fixed;
-
-    left:50%;
-    top:12px;
-
-    transform:translateX(-50%);
-
-    z-index:1000;
-
-    display:flex;
-    align-items:center;
-
-    gap:6px;
-
-    padding:8px 10px;
-
-    max-width:calc(100vw - 20px);
-
-    background:rgba(15,18,25,.94);
-
-    border:1px solid rgba(255,255,255,.10);
-
-    border-radius:16px;
-
+#drawingToolbar {
+    position: fixed;
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    min-height: 64px;
+    padding: 7px 8px;
+    background: rgba(13, 17, 25, .92);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 18px;
     box-shadow:
-        0 8px 30px rgba(0,0,0,.45),
-        0 2px 8px rgba(0,0,0,.25);
-
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-
-    pointer-events:auto;
+        0 18px 45px rgba(0, 0, 0, .48),
+        0 4px 14px rgba(0, 0, 0, .28),
+        inset 0 1px 0 rgba(255, 255, 255, .06);
+    backdrop-filter: blur(18px) saturate(130%);
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
+    pointer-events: auto;
 }
 
-
-/* ========================================
-   TOOL GROUP
-   ======================================== */
-
-.toolbarTools{
-    display:flex;
-    align-items:center;
-    gap:5px;
+.toolbarTools {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: none;
 }
-
-
-/* ========================================
-   TOOL + ACTION BUTTONS
-   ======================================== */
 
 .toolbarButton,
-.toolbarAction{
-    width:52px;
-    height:48px;
-
-    padding:4px;
-
-    border:1px solid transparent;
-    border-radius:11px;
-
-    background:rgba(255,255,255,.07);
-
-    color:#fff;
-
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-
-    gap:2px;
-
-    cursor:pointer;
-
-    flex:none;
-
-    -webkit-tap-highlight-color:transparent;
+.toolbarAction {
+    width: 52px;
+    height: 50px;
+    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, .075);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, .055);
+    color: #e9eef7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    flex: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background .16s ease,
+        border-color .16s ease,
+        box-shadow .16s ease,
+        transform .12s ease;
 }
 
 .toolbarButton:hover,
-.toolbarAction:hover{
-    background:rgba(255,255,255,.12);
+.toolbarAction:hover {
+    background: rgba(255, 255, 255, .105);
+    border-color: rgba(255, 255, 255, .13);
 }
 
-.toolbarButton.active{
-    background:#fff;
-    color:#111;
+.toolbarButton:active,
+.toolbarAction:active {
+    transform: scale(.96);
+}
 
+.toolbarButton.active {
+    background: linear-gradient(145deg, #ffffff, #e9eef7);
+    border-color: rgba(255, 255, 255, .72);
+    color: #10151e;
     box-shadow:
-        0 0 0 1px rgba(255,255,255,.35),
-        0 3px 10px rgba(255,255,255,.08);
+        0 0 0 1px rgba(255, 255, 255, .18),
+        0 5px 16px rgba(255, 255, 255, .10),
+        inset 0 1px 0 rgba(255, 255, 255, .9);
 }
 
-.toolbarIcon{
-    font-size:20px;
-    line-height:20px;
+.toolbarIcon {
+    font-size: 20px;
+    line-height: 20px;
 }
 
-.toolbarLabel{
-    font-family:Arial,sans-serif;
-
-    font-size:8px;
-    line-height:10px;
-
-    white-space:nowrap;
+.toolbarLabel {
+    font-family: Arial, sans-serif;
+    font-size: 8px;
+    line-height: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    letter-spacing: .05px;
 }
 
-
-/* ========================================
-   TOOLBAR DIVIDER
-   ======================================== */
-
-.toolbarDivider{
-    width:1px;
-    height:32px;
-
-    margin:0 3px;
-
-    background:rgba(255,255,255,.14);
-
-    flex:none;
+.toolbarDivider {
+    width: 1px;
+    height: 38px;
+    margin: 0 3px;
+    background: rgba(255, 255, 255, .12);
+    flex: none;
 }
 
-
-/* ========================================
-   COLOR PICKER
-   ======================================== */
-
-.toolbarColor{
-    width:46px;
-    height:48px;
-
-    border-radius:11px;
-
-    background:rgba(255,255,255,.07);
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    cursor:pointer;
-
-    position:relative;
-
-    flex:none;
-
-    -webkit-tap-highlight-color:transparent;
+.toolbarColor {
+    width: 48px;
+    height: 50px;
+    border: 1px solid rgba(255, 255, 255, .075);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, .055);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    flex: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background .16s ease,
+        border-color .16s ease;
 }
 
-.toolbarColor:hover{
-    background:rgba(255,255,255,.12);
+.toolbarColor:hover {
+    background: rgba(255, 255, 255, .105);
+    border-color: rgba(255, 255, 255, .13);
 }
 
-.toolbarColor input{
-    position:absolute;
-
-    width:1px;
-    height:1px;
-
-    opacity:0;
-
-    pointer-events:none;
+.toolbarColor input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
 }
 
-.toolbarColor .colorPreview{
-    width:27px;
-    height:27px;
-
-    border-radius:8px;
-
-    background:#ff0000;
-
-    border:2px solid rgba(255,255,255,.9);
-
+.toolbarColor .colorPreview {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: #ff0000;
+    border: 2px solid rgba(255, 255, 255, .92);
     box-shadow:
-        0 2px 8px rgba(0,0,0,.35);
+        0 2px 8px rgba(0, 0, 0, .38),
+        0 0 0 1px rgba(0, 0, 0, .25);
 }
 
+.toolbarSize {
+    width: 155px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 8px;
+    border: 1px solid rgba(255, 255, 255, .075);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, .055);
+    flex: none;
+}
+
+.toolbarSizeLabel {
+    color: #b7c3d5;
+    font-family: Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.toolbarSizeValue {
+    min-width: 18px;
+    text-align: center;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.sizeStepButton {
+    width: 27px;
+    height: 27px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .05);
+    color: #dbe5ef;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, color .16s ease, transform .12s ease;
+}
+
+.sizeStepButton:hover {
+    background: rgba(255, 255, 255, .1);
+    border-color: rgba(255, 255, 255, .18);
+    color: #fff;
+}
+
+.sizeStepButton:active {
+    transform: scale(.92);
+    background: rgba(255, 255, 255, .14);
+}
+
+.toolbarAction {
+    width: 50px;
+}
+
+.toolbarAction.danger {
+    background: rgba(180, 40, 40, .30);
+    border-color: rgba(255, 105, 105, .13);
+    color: #fff;
+}
+
+.toolbarAction.danger:hover {
+    background: rgba(210, 50, 50, .48);
+    border-color: rgba(255, 120, 120, .24);
+}
+
+#exitBtn {
+    background: rgba(255, 255, 255, .065);
+}
 
 /* ========================================
-   SIZE CONTROL
+   CONNECTION STATUS
    ======================================== */
 
-.toolbarSize{
-    width:125px;
-    height:48px;
-
-    display:flex;
-    align-items:center;
-
-    gap:7px;
-
-    padding:0 7px;
-
-    border-radius:11px;
-
-    background:rgba(255,255,255,.07);
-
-    flex:none;
+#connectionStatus {
+    position: fixed;
+    left: 14px;
+    top: 14px;
+    z-index: 1100;
+    min-height: 34px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid rgba(255, 255, 255, .10);
+    border-radius: 999px;
+    background: rgba(10, 14, 21, .78);
+    color: #dbe5f3;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .15px;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, .30),
+        inset 0 1px 0 rgba(255, 255, 255, .05);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    pointer-events: none;
 }
 
-.toolbarSizeLabel{
-    color:#aebbd0;
-
-    font-family:Arial,sans-serif;
-
-    font-size:9px;
-    font-weight:600;
-
-    white-space:nowrap;
+#connectionStatus span {
+    white-space: nowrap;
 }
-
-#sizeSlider{
-    flex:1;
-
-    width:70px;
-    height:22px;
-
-    margin:0;
-
-    accent-color:#fff;
-
-    cursor:pointer;
-}
-
-.toolbarSizeValue{
-    min-width:20px;
-
-    text-align:center;
-
-    color:#fff;
-
-    font-size:10px;
-    font-weight:700;
-}
-
-
-/* ========================================
-   ACTION BUTTONS
-   ======================================== */
-
-.toolbarAction{
-    width:50px;
-}
-
-.toolbarAction.danger{
-    background:rgba(180,40,40,.45);
-}
-
-.toolbarAction.danger:hover{
-    background:rgba(210,50,50,.55);
-}
-
 
 /* ========================================
    LIVE DESKTOP PREVIEW
    ======================================== */
 
-#screenPreviewContainer{
-    position:fixed;
-
-    left:50%;
-    top:50%;
-
-    transform:translate(-50%,-50%);
-
-    width:min(80vw,1000px);
-
-    background:#111;
-
-    border:2px solid #444;
-    border-radius:12px;
-
-    overflow:hidden;
-
-    box-shadow:
-        0 12px 40px rgba(0,0,0,.45);
-
-    z-index:3000;
-
-    display:none;
-
-    pointer-events:none;
+#screenPreviewContainer {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(80vw, 1000px);
+    background: #111;
+    border: 2px solid #444;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
+    z-index: 900;
+    display: none;
+    pointer-events: none;
 }
 
-.screenPreviewHeader{
-    height:36px;
-
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-
-    padding:0 12px;
-
-    background:#1c1c1c;
-
-    color:#fff;
-
-    font-size:14px;
-    font-weight:600;
+.screenPreviewHeader {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 13px;
+    background: rgba(22, 27, 36, .97);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
 }
 
-.screenStreamStatus{
-    font-size:14px;
+.screenStreamStatus {
+    font-size: 13px;
 }
 
-#screenPreviewContainer .screenPreviewContent{
-    width:100%;
-
-    aspect-ratio:16/9;
-
-    background:#000;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
+#screenPreviewContainer .screenPreviewContent {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#screenPreviewContainer .screenPreview{
-    width:100%;
-    height:100%;
-
-    object-fit:contain;
-
-    display:block;
+#screenPreviewContainer .screenPreview {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
-
 
 /* ========================================
-   RESPONSIVE
+   DRAWING TOOLBAR RESPONSIVE
    ======================================== */
 
-@media(max-width:600px){
-
-    .homeScreen{
-        padding:17px 13px 25px;
-    }
-
-    .homeHeader{
-        margin-bottom:18px;
-    }
-
-    .brandName{
-        font-size:23px;
-    }
-
-    .pcDownloadCard,
-    .connectionCard,
-    .savedConnectionsCard,
-    .pcPreviewCard{
-        border-radius:17px;
-    }
-
-
-    /* MOBILE DRAWING TOOLBAR */
-
-    #drawingToolbar{
-        top:8px;
-
-        width:calc(100vw - 16px);
-        max-width:calc(100vw - 16px);
-
-        padding:6px 7px;
-
-        gap:4px;
-
-        border-radius:13px;
-
-        overflow-x:auto;
-
-        scrollbar-width:none;
-    }
-
-    #drawingToolbar::-webkit-scrollbar{
-        display:none;
+@media (max-width: 900px) {
+    #drawingToolbar {
+        top: 9px;
+        max-width: calc(100vw - 16px);
+        gap: 4px;
+        padding: 6px 7px;
+        border-radius: 16px;
     }
 
     .toolbarButton,
-    .toolbarAction{
-        width:46px;
-        height:44px;
+    .toolbarAction {
+        width: 48px;
+        height: 46px;
     }
 
-    .toolbarIcon{
-        font-size:18px;
-        line-height:18px;
+    .toolbarIcon {
+        font-size: 19px;
+        line-height: 19px;
     }
 
-    .toolbarLabel{
-        font-size:7px;
+    .toolbarLabel {
+        font-size: 7.5px;
     }
 
-    .toolbarColor{
-        width:42px;
-        height:44px;
+    .toolbarColor {
+        width: 44px;
+        height: 46px;
     }
 
-    .toolbarColor .colorPreview{
-        width:25px;
-        height:25px;
+    .toolbarColor .colorPreview {
+        width: 26px;
+        height: 26px;
     }
 
-    .toolbarSize{
-        width:105px;
-        height:44px;
+   .toolbarSize {
+    width: 150px;
+    height: 46px;
+    gap: 5px;
+    padding: 0 7px;
+}
+
+    .toolbarDivider {
+        height: 34px;
+        margin: 0 1px;
     }
 
-    #screenPreviewContainer{
-        width:94vw;
+    #connectionStatus {
+        left: 9px;
+        top: 9px;
     }
 }
 
-
-/* ========================================
-   VERY SMALL SCREENS
-   ======================================== */
-
-@media(max-width:380px){
-
-    .homeScreen{
-        padding:14px 10px 20px;
+@media (max-width: 760px) {
+    #drawingToolbar {
+        width: calc(100vw - 12px);
+        max-width: calc(100vw - 12px);
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
     }
 
-    .connectionMethods{
-        gap:6px;
-    }
-
-    .methodButton{
-        height:65px;
+    #drawingToolbar::-webkit-scrollbar {
+        display: none;
     }
 
     .toolbarButton,
-    .toolbarAction{
-        width:42px;
-        height:42px;
+    .toolbarAction {
+        width: 46px;
+        height: 44px;
     }
 
-    .toolbarIcon{
-        font-size:17px;
-        line-height:17px;
+    .toolbarIcon {
+        font-size: 18px;
+        line-height: 18px;
     }
 
-    .toolbarLabel{
-        font-size:6.5px;
+    .toolbarLabel {
+        font-size: 7px;
     }
 
-    .toolbarSize{
-        width:95px;
+    .toolbarColor {
+        width: 42px;
+        height: 44px;
     }
 
-    .toolbarColor{
-        width:40px;
+    .toolbarSize {
+        width: 145px;
+        height: 44px;
     }
 
-    .toolbarDivider{
-        margin:0 1px;
-    }
 }
 
+@media (max-height: 600px) {
+    #drawingToolbar {
+        top: 6px;
+        padding: 5px 6px;
+    }
+
+    .toolbarButton,
+    .toolbarAction {
+        height: 40px;
+    }
+
+    .toolbarColor {
+        height: 40px;
+    }
+
+    .toolbarSize {
+        height: 40px;
+    }
+
+    .toolbarIcon {
+        font-size: 17px;
+        line-height: 17px;
+    }
+
+    .toolbarLabel {
+        font-size: 7px;
+    }
+
+    .toolbarDivider {
+        height: 28px;
+    }
+}
 
 /* ========================================
    LANDSCAPE MODE
    ======================================== */
 
-@media(orientation:landscape){
+@media (orientation: landscape) {
 
     #homeScreen,
-    #setupGuide{
-        display:none;
+    #setupGuide {
+        display: none;
     }
 
-    #drawingInterface{
-        display:block;
+    #drawingInterface {
+        display: block;
     }
 
-    #drawingToolbar{
-        top:10px;
+    #drawingToolbar {
+        top: 10px;
     }
 }
-
 
 /* ========================================
    PORTRAIT MODE
    ======================================== */
 
-@media(orientation:portrait){
-
-    #drawingInterface{
-        display:none;
+@media (orientation: portrait) {
+    #drawingInterface {
+        display: none;
     }
 }
-
 
 /* ========================================
-   SMALL HEIGHT DEVICES
+   HOME SCREEN RESPONSIVE
    ======================================== */
 
-@media(max-height:600px){
-
-    #drawingToolbar{
-        top:6px;
-
-        padding:5px 7px;
+@media (max-width: 600px) {
+    .homeScreen {
+        padding: 17px 13px 25px;
     }
 
-    .toolbarButton,
-    .toolbarAction{
-        height:40px;
+    .homeHeader {
+        margin-bottom: 18px;
     }
 
-    .toolbarColor{
-        height:40px;
+    .brandName {
+        font-size: 23px;
     }
 
-    .toolbarSize{
-        height:40px;
+    .pcDownloadCard,
+    .connectionCard,
+    .savedConnectionsCard,
+    .pcPreviewCard {
+        border-radius: 17px;
     }
 
-    .toolbarIcon{
-        font-size:17px;
-        line-height:17px;
-    }
-
-    .toolbarLabel{
-        font-size:7px;
-    }
-
-    .toolbarDivider{
-        height:27px;
+    #screenPreviewContainer {
+        width: 94vw;
     }
 }
 
+@media (max-width: 380px) {
+    .homeScreen {
+        padding: 14px 10px 20px;
+    }
+
+    .connectionMethods {
+        gap: 6px;
+    }
+
+    .methodButton {
+        height: 65px;
+    }
+}
 
 /* ========================================
    HOME SCREEN TOUCH FIX
    ======================================== */
 
-#homeScreen{
-    pointer-events:auto !important;
-    touch-action:manipulation !important;
+#homeScreen {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
 }
 
 #homeScreen button,
@@ -1329,7 +2285,43 @@ button:active{
 #homeScreen .methodButton,
 #homeScreen .primaryButton,
 #homeScreen .secondaryButton,
-#homeScreen .localModeCard{
-    pointer-events:auto !important;
-    touch-action:manipulation !important;
+#homeScreen .localModeCard {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+}
+
+/* ========================================
+
+   HOME SCREEN TOUCH FIX
+
+   ======================================== */
+
+
+
+#homeScreen {
+
+    pointer-events: auto !important;
+
+    touch-action: manipulation !important;
+
+}
+
+
+
+#homeScreen button,
+
+#homeScreen input,
+
+#homeScreen .methodButton,
+
+#homeScreen .primaryButton,
+
+#homeScreen .secondaryButton,
+
+#homeScreen .localModeCard {
+
+    pointer-events: auto !important;
+
+    touch-action: manipulation !important;
+
 }

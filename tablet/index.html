@@ -1,382 +1,1033 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#111111">
-<title>ScreenPen</title>
-<link rel="stylesheet" href="style.css?v=8">
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <meta
+        name="theme-color"
+        content="#111111"
+    >
+
+    <title>ScreenPen</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css?v=9"
+    >
+
 </head>
+
+
 <body>
 
-<!-- HOME SCREEN -->
-<div id="homeScreen" class="homeScreen">
 
-    <header class="homeHeader">
-        <div class="brand">
-            <div class="brandIcon">🖥️</div>
+    <!-- =====================================================
+         HOME SCREEN
+    ====================================================== -->
+
+    <div id="homeScreen" class="homeScreen">
+
+        <!-- HOME HEADER -->
+
+        <header class="homeHeader">
+
+            <div class="brand">
+
+                <div class="brandIcon">🖥️</div>
+
+                <div>
+
+                    <div class="brandName">
+                        Screen<span>Pen</span>
+                    </div>
+
+                    <div class="brandTagline">
+                        Draw • Highlight • Control
+                    </div>
+
+                </div>
+
+            </div>
+
+            <button
+                id="settingsBtn"
+                class="iconButton"
+                type="button"
+                aria-label="Settings"
+            >
+                ⚙
+            </button>
+
+        </header>
+
+
+        <!-- =================================================
+             PC APP DOWNLOAD
+        ================================================== -->
+
+        <section class="homeCard pcDownloadCard">
+
+            <div class="cardIcon windowsIcon">
+                ▣
+            </div>
+
+            <div class="cardContent">
+
+                <h2>
+                    ScreenPen for Windows
+                </h2>
+
+                <p>
+                    Install ScreenPen on your Windows PC to use PC Mode
+                    and connect your tablet.
+                </p>
+
+            </div>
+
+            <button
+                id="downloadPCBtn"
+                class="primaryButton downloadButton"
+                type="button"
+            >
+                ↓ <span>Download PC App</span>
+            </button>
+
+        </section>
+
+
+        <!-- =================================================
+             PC CONNECTION
+        ================================================== -->
+
+        <section
+            id="pcConnectionPanel"
+            class="homeCard connectionCard"
+        >
+
+            <div class="cardHeader">
+
+                <div class="cardTitle">
+
+                    <span class="cardIcon">
+                        🔗
+                    </span>
+
+                    <div>
+
+                        <h2>
+                            Connect to PC
+                        </h2>
+
+                        <p>
+                            Connect your tablet to a Windows PC
+                            running ScreenPen.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <button
+                    id="helpBtn"
+                    class="smallIconButton"
+                    type="button"
+                    aria-label="Connection Help"
+                >
+                    ?
+                </button>
+
+            </div>
+
+
+            <!-- CONNECTION METHODS -->
+
+            <div class="connectionMethods">
+
+                <button
+                    id="scanQRBtn"
+                    class="methodButton active"
+                    type="button"
+                >
+
+                    <span>
+                        ▦
+                    </span>
+
+                    <strong>
+                        Scan QR Code
+                    </strong>
+
+                </button>
+
+
+                <button
+                    id="manualIPBtn"
+                    class="methodButton"
+                    type="button"
+                >
+
+                    <span>
+                        ⌨
+                    </span>
+
+                    <strong>
+                        Enter IP Address
+                    </strong>
+
+                </button>
+
+            </div>
+
+
+            <!-- QR SCAN PANEL -->
+
+            <div
+                id="qrScanPanel"
+                class="qrScanPanel"
+            >
+
+                <div class="qrPlaceholder">
+
+                    <div class="qrCorners"></div>
+
+                    <div class="qrPlaceholderIcon">
+                        ▦
+                    </div>
+
+                    <strong>
+                        Tap to Scan QR Code
+                    </strong>
+
+                    <span>
+                        Scan the QR code shown in the ScreenPen PC app.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- OR -->
+
+            <div class="orDivider">
+
+                <span>
+                    OR
+                </span>
+
+            </div>
+
+
+            <!-- MANUAL IP -->
+
+            <div
+                id="manualIPPanel"
+                class="manualIPPanel"
+            >
+
+                <label for="pcIPInput">
+                    Enter PC IP Address
+                </label>
+
+                <input
+                    type="text"
+                    id="pcIPInput"
+                    class="pcIPInput"
+                    placeholder="192.168.1.100"
+                    inputmode="decimal"
+                    autocomplete="off"
+                >
+
+                <button
+                    id="connectPCBtn"
+                    class="primaryButton connectionButton"
+                    type="button"
+                >
+
+                    <span>
+                        ⌁
+                    </span>
+
+                    Connect to PC
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             LOCAL MODE
+        ================================================== -->
+
+        <button
+            id="localModeBtn"
+            class="homeCard localModeCard"
+            type="button"
+        >
+
+            <span class="cardIcon">
+                ▣
+            </span>
+
+            <span class="cardContent">
+
+                <strong>
+                    Local Mode
+                </strong>
+
+                <small>
+                    Draw on this device only • No PC connection required.
+                </small>
+
+            </span>
+
+            <span class="cardArrow">
+                ›
+            </span>
+
+        </button>
+
+
+        <!-- =================================================
+             CONNECTION STATUS
+        ================================================== -->
+
+        <section class="statusCard">
+
+            <div
+                id="homeConnectionStatus"
+                class="homeConnectionStatus"
+            >
+
+                <span class="statusDot"></span>
+
+                <div>
+
+                    <strong>
+                        Not Connected
+                    </strong>
+
+                    <small>
+                        Scan a QR code or enter a PC IP to get started.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SAVED CONNECTIONS
+        ================================================== -->
+
+        <section class="homeCard savedConnectionsCard">
+
+            <div class="cardHeader">
+
+                <div class="cardTitle">
+
+                    <span class="cardIcon">
+                        ◷
+                    </span>
+
+                    <div>
+
+                        <h2>
+                            Saved PC Connections
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <button
+                    id="manageConnectionsBtn"
+                    class="secondaryButton"
+                    type="button"
+                >
+                    Manage
+                </button>
+
+            </div>
+
+
+            <div
+                id="savedConnectionsList"
+                class="savedConnectionsList"
+            >
+
+                <div class="savedConnectionEmpty">
+
+                    <span>
+                        ▣
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            No saved PCs yet
+                        </strong>
+
+                        <small>
+                            Your connected PCs will appear here.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PC SCREEN PREVIEW
+        ================================================== -->
+
+        <section class="homeCard pcPreviewCard">
+
+            <div class="cardHeader">
+
+                <div class="cardTitle">
+
+                    <span class="cardIcon">
+                        🖥
+                    </span>
+
+                    <div>
+
+                        <h2>
+                            PC Screen Preview
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <span
+                    id="screenStreamStatus"
+                    class="screenStreamStatus"
+                >
+                    🔴
+                </span>
+
+            </div>
+
+
+            <div class="screenPreviewContent">
+
+                <img
+                    id="screenPreview"
+                    class="screenPreview"
+                    src="assets/pc-screen-placeholder.png"
+                    alt="PC Screen Preview"
+                >
+
+            </div>
+
+
+            <button
+                id="screenPreviewToggleBtn"
+                class="secondaryButton screenPreviewToggle"
+                type="button"
+            >
+                ◉ Show/Hide PC Screen
+            </button>
+
+        </section>
+
+    </div>
+
+
+    <!-- =====================================================
+         PC SETUP GUIDE
+    ====================================================== -->
+
+    <div
+        id="setupGuide"
+        class="setupGuide"
+        hidden
+    >
+
+        <header class="setupHeader">
+
+            <button
+                id="setupBackBtn"
+                class="iconButton"
+                type="button"
+                aria-label="Back"
+            >
+                ←
+            </button>
+
             <div>
-                <div class="brandName">Screen<span>Pen</span></div>
-                <div class="brandTagline">Draw • Highlight • Control</div>
+
+                <h1>
+                    Set Up ScreenPen PC
+                </h1>
+
+                <p>
+                    Install the Windows application to use PC Mode.
+                </p>
+
             </div>
-        </div>
-        <button id="settingsBtn" class="iconButton" type="button" aria-label="Settings">⚙</button>
-    </header>
 
-    <!-- PC APP DOWNLOAD -->
-    <section class="homeCard pcDownloadCard">
-        <div class="cardIcon windowsIcon">▣</div>
-        <div class="cardContent">
-            <h2>ScreenPen for Windows</h2>
-            <p>Install ScreenPen on your Windows PC to use PC Mode and connect your tablet.</p>
-        </div>
-        <button id="downloadPCBtn" class="primaryButton downloadButton" type="button">
-            ↓ <span>Download PC App</span>
-        </button>
-    </section>
+        </header>
 
-    <!-- PC CONNECTION -->
-    <section id="pcConnectionPanel" class="homeCard connectionCard">
-        <div class="cardHeader">
-            <div class="cardTitle">
-                <span class="cardIcon">🔗</span>
-                <div>
-                    <h2>Connect to PC</h2>
-                    <p>Connect your tablet to a Windows PC running ScreenPen.</p>
+
+        <main class="setupContent">
+
+
+            <!-- INTRO -->
+
+            <section class="setupIntro">
+
+                <div class="setupIcon">
+                    🖥️
                 </div>
-            </div>
-            <button id="helpBtn" class="smallIconButton" type="button" aria-label="Connection Help">?</button>
-        </div>
 
-        <div class="connectionMethods">
-            <button id="scanQRBtn" class="methodButton active" type="button">
-                <span>▦</span>
-                <strong>Scan QR Code</strong>
+                <h2>
+                    Connect your tablet to Windows
+                </h2>
+
+                <p>
+                    Follow these simple steps before connecting
+                    your tablet to your PC.
+                </p>
+
+            </section>
+
+
+            <!-- STEP 1 -->
+
+            <section class="setupStep">
+
+                <div class="stepNumber">
+                    1
+                </div>
+
+                <div class="stepContent">
+
+                    <h3>
+                        Visit our website
+                    </h3>
+
+                    <p>
+                        Open the official ScreenPen website on
+                        your Windows PC.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- STEP 2 -->
+
+            <section class="setupStep">
+
+                <div class="stepNumber">
+                    2
+                </div>
+
+                <div class="stepContent">
+
+                    <h3>
+                        Download ScreenPen
+                    </h3>
+
+                    <p>
+                        Click
+                        <strong>
+                            Download ScreenPen for Windows
+                        </strong>
+                        on our website.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- STEP 3 -->
+
+            <section class="setupStep">
+
+                <div class="stepNumber">
+                    3
+                </div>
+
+                <div class="stepContent">
+
+                    <h3>
+                        Install the PC application
+                    </h3>
+
+                    <p>
+                        Run the downloaded installer and follow
+                        the installation steps.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- STEP 4 -->
+
+            <section class="setupStep">
+
+                <div class="stepNumber">
+                    4
+                </div>
+
+                <div class="stepContent">
+
+                    <h3>
+                        Launch ScreenPen
+                    </h3>
+
+                    <p>
+                        Open ScreenPen on your Windows PC and
+                        keep it running.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- STEP 5 -->
+
+            <section class="setupStep">
+
+                <div class="stepNumber">
+                    5
+                </div>
+
+                <div class="stepContent">
+
+                    <h3>
+                        Connect your tablet
+                    </h3>
+
+                    <p>
+                        Return to this app and scan the QR code
+                        shown by ScreenPen or enter the PC IP
+                        address manually.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <button
+                id="setupWebsiteBtn"
+                class="primaryButton"
+                type="button"
+            >
+                Visit ScreenPen Website
             </button>
-            <button id="manualIPBtn" class="methodButton" type="button">
-                <span>⌨</span>
-                <strong>Enter IP Address</strong>
+
+
+            <button
+                id="setupBackHomeBtn"
+                class="secondaryButton"
+                type="button"
+            >
+                Back to Home
             </button>
+
+
+        </main>
+
+    </div>
+
+
+    <!-- =====================================================
+         DRAWING INTERFACE
+    ====================================================== -->
+
+    <div
+        id="drawingInterface"
+        class="drawingInterface"
+        hidden
+    >
+
+
+        <!-- =================================================
+             CONNECTION STATUS
+        ================================================== -->
+
+        <div
+            id="connectionStatus"
+            class="connectionStatus"
+            title="Connection Status"
+        >
+            ⚪
+            <span>
+                Not Connected
+            </span>
         </div>
 
-        <div id="qrScanPanel" class="qrScanPanel">
-            <div class="qrPlaceholder">
-                <div class="qrCorners"></div>
-                <div class="qrPlaceholderIcon">▦</div>
-                <strong>Tap to Scan QR Code</strong>
-                <span>Scan the QR code shown in the ScreenPen PC app.</span>
+
+        <!-- =================================================
+             LIVE DESKTOP PREVIEW
+        ================================================== -->
+
+        <div
+            id="screenPreviewContainer"
+            class="screenPreviewContainer"
+        >
+
+            <div
+                id="screenPreviewHeader"
+                class="screenPreviewHeader"
+            >
+
+                <span>
+                    🖥 Live Desktop
+                </span>
+
+                <span class="screenStreamStatus">
+                    🔴
+                </span>
+
             </div>
+
+
+            <div class="screenPreviewContent">
+
+                <img
+                    id="drawingScreenPreview"
+                    class="screenPreview"
+                    alt="Live Windows desktop"
+                >
+
+            </div>
+
         </div>
 
-        <div class="orDivider">
-            <span>OR</span>
-        </div>
 
-        <div id="manualIPPanel" class="manualIPPanel">
-            <label for="pcIPInput">Enter PC IP Address</label>
-            <input type="text" id="pcIPInput" class="pcIPInput" placeholder="192.168.1.100" inputmode="decimal" autocomplete="off">
-            <button id="connectPCBtn" class="primaryButton connectionButton" type="button">
-                <span>⌁</span> Connect to PC
+        <!-- =================================================
+             DRAWING CANVAS
+        ================================================== -->
+
+        <canvas
+            id="drawingCanvas"
+        ></canvas>
+
+
+        <!-- =================================================
+             DRAWING TOOLBAR
+        ================================================== -->
+
+        <div
+            id="drawingToolbar"
+            class="drawingToolbar"
+        >
+
+
+            <!-- =============================================
+                 DRAWING TOOLS
+            ============================================== -->
+
+            <div class="toolbarTools">
+
+
+                <!-- PEN -->
+
+                <button
+                    id="penBtn"
+                    class="toolbarButton active"
+                    title="Pen"
+                    aria-label="Pen"
+                    type="button"
+                >
+
+                    <span class="toolbarIcon">
+                        ✎
+                    </span>
+
+                    <span class="toolbarLabel">
+                        Pen
+                    </span>
+
+                </button>
+
+
+                <!-- HIGHLIGHTER -->
+
+                <button
+                    id="highlighterBtn"
+                    class="toolbarButton"
+                    title="Highlighter"
+                    aria-label="Highlighter"
+                    type="button"
+                >
+
+                    <span class="toolbarIcon">
+                        🖍
+                    </span>
+
+                    <span class="toolbarLabel">
+                        Highlight
+                    </span>
+
+                </button>
+
+
+                <!-- ERASER -->
+
+                <button
+                    id="eraserBtn"
+                    class="toolbarButton"
+                    title="Eraser"
+                    aria-label="Eraser"
+                    type="button"
+                >
+
+                    <span class="toolbarIcon">
+                        ⌫
+                    </span>
+
+                    <span class="toolbarLabel">
+                        Eraser
+                    </span>
+
+                </button>
+
+
+                <!-- ARROW -->
+
+                <button
+                    id="arrowBtn"
+                    class="toolbarButton"
+                    title="Arrow"
+                    aria-label="Arrow"
+                    type="button"
+                >
+
+                    <span class="toolbarIcon">
+                        ➜
+                    </span>
+
+                    <span class="toolbarLabel">
+                        Arrow
+                    </span>
+
+                </button>
+
+
+                <!-- RECTANGLE -->
+
+                <button
+                    id="rectangleBtn"
+                    class="toolbarButton"
+                    title="Rectangle"
+                    aria-label="Rectangle"
+                    type="button"
+                >
+
+                    <span class="toolbarIcon">
+                        □
+                    </span>
+
+                    <span class="toolbarLabel">
+                        Rectangle
+                    </span>
+
+                </button>
+
+
+                <!-- CIRCLE -->
+
+                <button
+                    id="circleBtn"
+                    class="toolbarButton"
+                    title="Circle"
+                    aria-label="Circle"
+                    type="button"
+                >
+
+                    <span class="toolbarIcon">
+                        ○
+                    </span>
+
+                    <span class="toolbarLabel">
+                        Circle
+                    </span>
+
+                </button>
+
+
+            </div>
+
+
+            <!-- =============================================
+                 TOOLBAR DIVIDER
+            ============================================== -->
+
+            <div class="toolbarDivider"></div>
+
+
+            <!-- =============================================
+                 COLOR
+            ============================================== -->
+
+            <label
+                class="toolbarColor"
+                title="Choose Color"
+            >
+
+                <span
+                    id="colorPreview"
+                    class="colorPreview"
+                ></span>
+
+                <input
+                    type="color"
+                    id="colorPicker"
+                    value="#ff0000"
+                    aria-label="Choose drawing color"
+                >
+
+            </label>
+
+
+            <!-- =============================================
+                 SIZE
+                 NOTE: Keep the range slider because the
+                 current tablet.js uses sizeSlider.
+            ============================================== -->
+
+        <div class="toolbarSize">
+    <span class="toolbarSizeLabel">Brush Size</span>
+    <button id="sizeMinusBtn" class="sizeStepButton" type="button">−</button>
+    <span id="sizeValue" class="toolbarSizeValue">5</span>
+    <button id="sizePlusBtn" class="sizeStepButton" type="button">+</button>
+</div>
+
+
+            <!-- =============================================
+                 UNDO
+            ============================================== -->
+
+            <button
+                id="undoBtn"
+                class="toolbarAction"
+                title="Undo"
+                aria-label="Undo"
+                type="button"
+            >
+
+                <span class="toolbarIcon">
+                    ↶
+                </span>
+
+                <span class="toolbarLabel">
+                    Undo
+                </span>
+
             </button>
+
+
+            <!-- =============================================
+                 CLEAR
+            ============================================== -->
+
+            <button
+                id="clearBtn"
+                class="toolbarAction danger"
+                title="Clear All"
+                aria-label="Clear All"
+                type="button"
+            >
+
+                <span class="toolbarIcon">
+                    🗑
+                </span>
+
+                <span class="toolbarLabel">
+                    Clear
+                </span>
+
+            </button>
+
+
+            <!-- =============================================
+                 SCREEN
+            ============================================== -->
+
+            <button
+                id="screenBtn"
+                class="toolbarAction"
+                title="Desktop Screen"
+                aria-label="Desktop Screen"
+                type="button"
+            >
+
+                <span class="toolbarIcon">
+                    🖥
+                </span>
+
+                <span class="toolbarLabel">
+                    Screen
+                </span>
+
+            </button>
+
+
+            <!-- =============================================
+                 HOME
+            ============================================== -->
+
+            <button
+                id="exitBtn"
+                class="toolbarAction"
+                title="Home"
+                aria-label="Home"
+                type="button"
+            >
+
+                <span class="toolbarIcon">
+                    ⌂
+                </span>
+
+                <span class="toolbarLabel">
+                    Home
+                </span>
+
+            </button>
+
+
         </div>
-    </section>
 
-    <!-- LOCAL MODE -->
-    <button id="localModeBtn" class="homeCard localModeCard" type="button">
-        <span class="cardIcon">▣</span>
-        <span class="cardContent">
-            <strong>Local Mode</strong>
-            <small>Draw on this device only • No PC connection required.</small>
-        </span>
-        <span class="cardArrow">›</span>
-    </button>
-
-    <!-- CONNECTION STATUS -->
-    <section class="statusCard">
-        <div id="homeConnectionStatus" class="homeConnectionStatus">
-            <span class="statusDot"></span>
-            <div>
-                <strong>Not Connected</strong>
-                <small>Scan a QR code or enter a PC IP to get started.</small>
-            </div>
-        </div>
-    </section>
-
-    <!-- SAVED CONNECTIONS -->
-    <section class="homeCard savedConnectionsCard">
-        <div class="cardHeader">
-            <div class="cardTitle">
-                <span class="cardIcon">◷</span>
-                <div>
-                    <h2>Saved PC Connections</h2>
-                </div>
-            </div>
-            <button id="manageConnectionsBtn" class="secondaryButton" type="button">Manage</button>
-        </div>
-
-        <div id="savedConnectionsList" class="savedConnectionsList">
-            <div class="savedConnectionEmpty">
-                <span>▣</span>
-                <div>
-                    <strong>No saved PCs yet</strong>
-                    <small>Your connected PCs will appear here.</small>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- PC SCREEN PREVIEW -->
-    <section class="homeCard pcPreviewCard">
-        <div class="cardHeader">
-            <div class="cardTitle">
-                <span class="cardIcon">🖥</span>
-                <div>
-                    <h2>PC Screen Preview</h2>
-                </div>
-            </div>
-            <span id="screenStreamStatus" class="screenStreamStatus">🔴</span>
-        </div>
-
-        <div class="screenPreviewContent">
-            <img id="screenPreview" class="screenPreview" alt="Live Windows desktop">
-        </div>
-
-        <button id="screenPreviewToggleBtn" class="secondaryButton screenPreviewToggle" type="button">
-            ◉ Show/Hide PC Screen
-        </button>
-    </section>
-
-</div>
-
-<!-- PC SETUP GUIDE -->
-<div id="setupGuide" class="setupGuide" hidden>
-
-    <header class="setupHeader">
-        <button id="setupBackBtn" class="iconButton" type="button" aria-label="Back">←</button>
-        <div>
-            <h1>Set Up ScreenPen PC</h1>
-            <p>Install the Windows application to use PC Mode.</p>
-        </div>
-    </header>
-
-    <main class="setupContent">
-
-        <section class="setupIntro">
-            <div class="setupIcon">🖥️</div>
-            <h2>Connect your tablet to Windows</h2>
-            <p>Follow these simple steps before connecting your tablet to your PC.</p>
-        </section>
-
-        <section class="setupStep">
-            <div class="stepNumber">1</div>
-            <div class="stepContent">
-                <h3>Visit our website</h3>
-                <p>Open the official ScreenPen website on your Windows PC.</p>
-            </div>
-        </section>
-
-        <section class="setupStep">
-            <div class="stepNumber">2</div>
-            <div class="stepContent">
-                <h3>Download ScreenPen</h3>
-                <p>Click <strong>Download ScreenPen for Windows</strong> on our website.</p>
-            </div>
-        </section>
-
-        <section class="setupStep">
-            <div class="stepNumber">3</div>
-            <div class="stepContent">
-                <h3>Install the PC application</h3>
-                <p>Run the downloaded installer and follow the installation steps.</p>
-            </div>
-        </section>
-
-        <section class="setupStep">
-            <div class="stepNumber">4</div>
-            <div class="stepContent">
-                <h3>Launch ScreenPen</h3>
-                <p>Open ScreenPen on your Windows PC and keep it running.</p>
-            </div>
-        </section>
-
-        <section class="setupStep">
-            <div class="stepNumber">5</div>
-            <div class="stepContent">
-                <h3>Connect your tablet</h3>
-                <p>Return to this app and scan the QR code shown by ScreenPen or enter the PC IP address manually.</p>
-            </div>
-        </section>
-
-        <button id="setupWebsiteBtn" class="primaryButton" type="button">
-            Visit ScreenPen Website
-        </button>
-
-        <button id="setupBackHomeBtn" class="secondaryButton" type="button">
-            Back to Home
-        </button>
-
-    </main>
-</div>
-
-<!-- DRAWING INTERFACE -->
-<div id="drawingInterface" class="drawingInterface" hidden>
-<div id="connectionStatus" class="connectionStatus">
-        ⚪ <span>Not Connected</span>
-    </div>
-    <!-- LIVE DESKTOP PREVIEW -->
-    <div id="screenPreviewContainer" class="screenPreviewContainer">
-        <div id="screenPreviewHeader" class="screenPreviewHeader">
-            <span>🖥 Live Desktop</span>
-            <span class="screenStreamStatus">🔴</span>
-        </div>
-        <div class="screenPreviewContent">
-    <img
-        id="drawingScreenPreview"
-        class="screenPreview"
-        alt="Live Windows desktop">
-</div>
-    </div>
-
-    <!-- DRAWING CANVAS -->
-    <canvas id="drawingCanvas"></canvas>
-
-    <!-- DRAWING TOOLBAR -->
-
-<div id="drawingToolbar">
-
-    <!-- Tools -->
-    <div class="toolbarTools">
-
-        <button id="penBtn"
-                class="toolbarButton active"
-                title="Pen"
-                aria-label="Pen">
-            <span class="toolbarIcon">✎</span>
-            <span class="toolbarLabel">Pen</span>
-        </button>
-
-        <button id="highlighterBtn"
-                class="toolbarButton"
-                title="Highlighter"
-                aria-label="Highlighter">
-            <span class="toolbarIcon">🖍</span>
-            <span class="toolbarLabel">Highlight</span>
-        </button>
-
-        <button id="eraserBtn"
-                class="toolbarButton"
-                title="Eraser"
-                aria-label="Eraser">
-            <span class="toolbarIcon">⌫</span>
-            <span class="toolbarLabel">Eraser</span>
-        </button>
-
-        <button id="arrowBtn"
-                class="toolbarButton"
-                title="Arrow"
-                aria-label="Arrow">
-            <span class="toolbarIcon">➜</span>
-            <span class="toolbarLabel">Arrow</span>
-        </button>
-
-        <button id="rectangleBtn"
-                class="toolbarButton"
-                title="Rectangle"
-                aria-label="Rectangle">
-            <span class="toolbarIcon">□</span>
-            <span class="toolbarLabel">Rectangle</span>
-        </button>
-
-        <button id="circleBtn"
-                class="toolbarButton"
-                title="Circle"
-                aria-label="Circle">
-            <span class="toolbarIcon">○</span>
-            <span class="toolbarLabel">Circle</span>
-        </button>
 
     </div>
 
 
-    <!-- Color -->
-    <div class="toolbarDivider"></div>
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
 
-    <label class="toolbarColor"
-           title="Choose Color">
+    <script src="tablet.js?v=8"></script>
 
-        <span id="colorPreview"
-              class="colorPreview">
-        </span>
-
-        <input type="color"
-               id="colorPicker"
-               value="#ff0000"
-               aria-label="Choose drawing color">
-
-    </label>
-
-
-    <!-- Size -->
-    <div class="toolbarSize">
-
-        <span class="toolbarSizeLabel">
-            Size
-        </span>
-
-        <input type="range"
-               id="sizeSlider"
-               min="1"
-               max="50"
-               value="5"
-               aria-label="Brush size">
-
-        <span id="sizeValue"
-              class="toolbarSizeValue">
-            5
-        </span>
-
-    </div>
-
-
-    <!-- Actions -->
-    <div class="toolbarDivider"></div>
-
-    <button id="undoBtn"
-            class="toolbarAction"
-            title="Undo"
-            aria-label="Undo">
-        <span class="toolbarIcon">↶</span>
-        <span class="toolbarLabel">Undo</span>
-    </button>
-
-    <button id="clearBtn"
-            class="toolbarAction danger"
-            title="Clear All"
-            aria-label="Clear All">
-        <span class="toolbarIcon">🗑</span>
-        <span class="toolbarLabel">Clear</span>
-    </button>
-
-    <button id="screenBtn"
-            class="toolbarAction"
-            title="Desktop Screen"
-            aria-label="Desktop Screen">
-        <span class="toolbarIcon">🖥</span>
-        <span class="toolbarLabel">Screen</span>
-    </button>
-
-    <button id="exitBtn"
-            class="toolbarAction"
-            title="Home"
-            aria-label="Home">
-        <span class="toolbarIcon">⌂</span>
-        <span class="toolbarLabel">Home</span>
-    </button>
-
-</div>
-
-</div>
-
-<script src="tablet.js?v=8"></script>
 </body>
+
+
 </html>

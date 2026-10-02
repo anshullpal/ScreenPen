@@ -97,6 +97,133 @@ function clearScreenPenIP() {
 
 }
 
+/* =========================================================
+   SAVED PC CONNECTIONS
+========================================================= */
+
+const SAVED_CONNECTIONS_KEY =
+    "screenPenSavedConnections";
+
+
+function getSavedConnections() {
+
+    try {
+
+        const saved =
+            localStorage.getItem(
+                SAVED_CONNECTIONS_KEY
+            );
+
+        if (!saved) {
+            return [];
+        }
+
+        const connections =
+            JSON.parse(saved);
+
+        return Array.isArray(
+            connections
+        )
+            ? connections
+            : [];
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Failed to load saved PC connections:",
+            error
+        );
+
+        return [];
+
+    }
+
+}
+
+
+function saveSavedConnections(
+    connections
+) {
+
+    localStorage.setItem(
+        SAVED_CONNECTIONS_KEY,
+        JSON.stringify(
+            connections
+        )
+    );
+
+}
+
+
+function addSavedConnection(
+    ip
+) {
+
+    const cleanedIP =
+        String(ip || "").trim();
+
+    if (!cleanedIP) {
+        return;
+    }
+
+    let connections =
+        getSavedConnections();
+
+    /*
+     * Remove duplicate IP if it
+     * already exists.
+     */
+    connections =
+        connections.filter(
+            connection =>
+                connection.ip !==
+                cleanedIP
+        );
+
+    /*
+     * Add newest connection
+     * to the beginning.
+     */
+    connections.unshift({
+
+        ip: cleanedIP,
+
+        name: "ScreenPen PC"
+
+    });
+
+    saveSavedConnections(
+        connections
+    );
+
+    renderSavedConnections();
+
+}
+
+
+function removeSavedConnection(
+    ip
+) {
+
+    let connections =
+        getSavedConnections();
+
+    connections =
+        connections.filter(
+            connection =>
+                connection.ip !== ip
+        );
+
+    saveSavedConnections(
+        connections
+    );
+
+    renderSavedConnections();
+
+}
+
 
 function getWebSocketURL() {
 
@@ -324,6 +451,9 @@ function connectWebSocket() {
             screenPenIP
         );
 
+        addSavedConnection(
+            screenPenIP
+        );
 
         updateHomeConnectionState(
             true
@@ -364,38 +494,50 @@ function connectWebSocket() {
     };
 
 
-    ws.onclose = () => {
+  ws.onclose = () => {
+
+    console.log(
+        "WebSocket disconnected."
+    );
+
+    // Local Mode intentionally closes the PC connection.
+    // Do not show "Disconnected" in this case.
+    if (localMode) {
 
         connectionStatus.innerHTML =
-            "🔴 <span>Disconnected</span>";
-
-
-        console.log(
-            "WebSocket disconnected."
-        );
-
+            "🔵 <span>Local Mode</span>";
 
         updateHomeConnectionState(
             false
         );
 
-
         updateHomeConnectionMessage(
-            "Disconnected",
-            "🔴"
+            "Local Mode",
+            "🔵"
         );
 
+        return;
+    }
 
-        if (
-            !manualClose &&
-            !localMode
-        ) {
+    connectionStatus.innerHTML =
+        "🔴 <span>Disconnected</span>";
 
-            scheduleReconnect();
+    updateHomeConnectionState(
+        false
+    );
 
-        }
+    updateHomeConnectionMessage(
+        "Disconnected",
+        "🔴"
+    );
 
-    };
+    if (!manualClose) {
+
+        scheduleReconnect();
+
+    }
+
+};
 
 
     ws.onerror = error => {
@@ -645,9 +787,14 @@ const colorPreview =
     );
 
 
-const sizeSlider =
+const sizeMinusBtn =
     document.getElementById(
-        "sizeSlider"
+        "sizeMinusBtn"
+    );
+
+const sizePlusBtn =
+    document.getElementById(
+        "sizePlusBtn"
     );
 
 
@@ -731,6 +878,232 @@ const manageConnectionsBtn =
         "manageConnectionsBtn"
     );
 
+const savedConnectionsList =
+    document.getElementById(
+        "savedConnectionsList"
+    );
+
+function renderSavedConnections() {
+
+    if (!savedConnectionsList) {
+        return;
+    }
+
+    const connections =
+        getSavedConnections();
+
+    if (
+        connections.length === 0
+    ) {
+
+        savedConnectionsList.innerHTML = `
+
+            <div class="savedConnectionEmpty">
+
+                <span>▣</span>
+
+                <div>
+
+                    <strong>
+                        No saved PCs yet
+                    </strong>
+
+                    <small>
+                        Your connected PCs will appear here.
+                    </small>
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    savedConnectionsList.innerHTML =
+        "";
+
+    connections.forEach(
+        connection => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+            item.className =
+                "savedConnectionItem";
+
+            item.innerHTML = `
+
+                <div class="savedConnectionInfo">
+
+                    <span class="savedConnectionIcon">
+                        🖥
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            ${connection.name}
+                        </strong>
+
+                        <small>
+                            ${connection.ip}
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <div class="savedConnectionActions">
+
+                    <button
+                        class="savedConnectButton"
+                        type="button"
+                        data-ip="${connection.ip}">
+                        Connect
+                    </button>
+                <button
+    class="savedDeleteButton"
+    type="button"
+    data-ip="${connection.ip}"
+    aria-label="Remove saved PC"
+    style="display:${managingConnections ? "flex" : "none"};">
+    ×
+</button>
+                   
+                </div>
+
+            `;
+
+            savedConnectionsList.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
+let managingConnections = false;
+
+/* =========================================================
+   STEP 4 — SAVED CONNECTION BUTTON ACTIONS
+========================================================= */
+
+if (savedConnectionsList) {
+
+    savedConnectionsList.addEventListener(
+        "click",
+        event => {
+
+            /*
+             * CONNECT BUTTON
+             */
+            const connectButton =
+                event.target.closest(
+                    ".savedConnectButton"
+                );
+
+            if (connectButton) {
+
+                event.preventDefault();
+
+                const ip =
+                    connectButton.dataset.ip;
+
+                if (ip) {
+
+                    if (pcIPInput) {
+
+                        pcIPInput.value =
+                            ip;
+
+                    }
+
+                    connectToPC(ip);
+
+                }
+
+                return;
+
+            }
+
+
+            /*
+             * DELETE BUTTON
+             */
+            const deleteButton =
+                event.target.closest(
+                    ".savedDeleteButton"
+                );
+
+            if (deleteButton) {
+
+                event.preventDefault();
+
+                /*
+                 * Do not allow deletion unless
+                 * Manage mode is active.
+                 */
+                if (!managingConnections) {
+                    return;
+                }
+
+                const ip =
+                    deleteButton.dataset.ip;
+
+                if (ip) {
+
+                    removeSavedConnection(ip);
+
+                }
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   STEP 8 — MANAGE / DONE BUTTON
+========================================================= */
+
+if (manageConnectionsBtn) {
+
+    manageConnectionsBtn.addEventListener(
+        "click",
+        () => {
+
+            managingConnections =
+                !managingConnections;
+
+
+            /*
+             * Change button text
+             */
+            manageConnectionsBtn.textContent =
+                managingConnections
+                    ? "Done"
+                    : "Manage";
+
+
+            /*
+             * Re-render saved connections
+             * so delete buttons appear/disappear.
+             */
+            renderSavedConnections();
+
+        }
+    );
+
+}
+
 const screenPreviewToggleBtn =
     document.getElementById(
         "screenPreviewToggleBtn"
@@ -761,6 +1134,8 @@ const settingsBtn =
 
 const STREAM_PORT = 8766;
 
+const SCREEN_PLACEHOLDER =
+    "assets/pc-screen-placeholder.png";
 
 function getScreenStreamURL() {
 
@@ -1016,6 +1391,13 @@ function connectScreenStream() {
             screenStreamSocket =
                 null;
 
+            if (screenPreview) {
+
+                screenPreview.src =
+                    SCREEN_PLACEHOLDER;
+
+            }
+
 
             if (
                 screenStreamEnabled &&
@@ -1198,12 +1580,10 @@ function closeScreenPreview() {
         screenPreview
     ) {
 
-        screenPreview.removeAttribute(
-            "src"
-        );
+        screenPreview.src =
+            SCREEN_PLACEHOLDER;
 
     }
-
 
     if (
         screenStreamStatus
@@ -1922,7 +2302,7 @@ function sendPointer(
     event,
     extra = {}
 ) {
-     console.log(
+    console.log(
         "SEND POINTER:",
         eventType,
         position
@@ -2115,15 +2495,6 @@ function updateSizeControl() {
         sizeTitle.textContent =
             "Eraser Size";
 
-        sizeSlider.min =
-            "5";
-
-        sizeSlider.max =
-            "100";
-
-        sizeSlider.value =
-            eraserSize;
-
         sizeValue.textContent =
             eraserSize;
 
@@ -2134,22 +2505,12 @@ function updateSizeControl() {
         sizeTitle.textContent =
             "Brush Size";
 
-        sizeSlider.min =
-            "1";
-
-        sizeSlider.max =
-            "50";
-
-        sizeSlider.value =
-            brushSize;
-
         sizeValue.textContent =
             brushSize;
 
     }
 
 }
-
 
 /* =======================================================
    RENDER
@@ -5591,63 +5952,85 @@ colorPicker.addEventListener(
    SIZE
 ======================================================= */
 
-sizeSlider.addEventListener(
-    "input",
-    event => {
+function changeSize(
+    direction
+) {
 
-        event.stopPropagation();
+    if (
+        tool === "eraser"
+    ) {
 
+        eraserSize =
+            eraserSize +
+            direction;
 
-        const value =
-            Number(
-                sizeSlider.value
+        eraserSize =
+            Math.max(
+                5,
+                Math.min(
+                    100,
+                    eraserSize
+                )
             );
 
+        sizeValue.textContent =
+            eraserSize;
 
-        if (
-            tool === "eraser"
-        ) {
-
-            eraserSize =
-                value;
-
-
-            sizeValue.textContent =
-                eraserSize;
-
-
-            sendCommand(
-
-                "eraser_size",
-
-                eraserSize
-
-            );
-
-        }
-
-        else {
-
-            brushSize =
-                value;
-
-
-            sizeValue.textContent =
-                brushSize;
-
-
-            sendCommand(
-
-                "size",
-
-                brushSize
-
-            );
-
-        }
+        sendCommand(
+            "eraser_size",
+            eraserSize
+        );
 
     }
-);
+
+    else {
+
+        brushSize =
+            brushSize +
+            direction;
+
+        brushSize =
+            Math.max(
+                1,
+                Math.min(
+                    50,
+                    brushSize
+                )
+            );
+
+        sizeValue.textContent =
+            brushSize;
+
+        sendCommand(
+            "size",
+            brushSize
+        );
+
+    }
+
+}
+
+if (sizeMinusBtn) {
+    sizeMinusBtn.addEventListener(
+        "pointerup",
+        event => {
+            event.preventDefault();
+            event.stopPropagation();
+            changeSize(-1);
+        }
+    );
+}
+
+if (sizePlusBtn) {
+    sizePlusBtn.addEventListener(
+        "pointerup",
+        event => {
+            event.preventDefault();
+            event.stopPropagation();
+            changeSize(1);
+        }
+    );
+}
 
 
 /* =======================================================
@@ -5855,9 +6238,9 @@ exitBtn.addEventListener(
         );
 
         if (connectionStatus) {
-            connectionStatus.innerHTML =
-                "⚪ <span>Not Connected</span>";
-        }
+    connectionStatus.innerHTML =
+        "🟢 <span>Local Mode</span>";
+}
 
         // Return to Home
         showHomeScreen();
@@ -6058,10 +6441,7 @@ function initialize() {
     Initialize brush size.
     */
 
-    brushSize =
-        Number(
-            sizeSlider.value
-        ) || 5;
+    brushSize = 5;
 
     sizeValue.textContent =
         String(
@@ -6129,6 +6509,9 @@ function initialize() {
     */
 
     updateHomeConnectionState(false);
+
+
+    renderSavedConnections();
 
 
     /*
